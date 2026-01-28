@@ -11,6 +11,11 @@ const routes: Routes = [
     data: { pageTitle: 'bglsApp.console.home.title' },
     loadChildren: () => import('./console/console.routes'),
   },
+  {
+    path: 'game',
+    data: { pageTitle: 'bglsApp.game.home.title' },
+    loadChildren: () => import('./game/game.routes'),
+  },
   /* jhipster-needle-add-entity-route - JHipster will add entity modules routes here */
 ];
 

@@ -19,7 +19,8 @@
       },
       "id": "ID",
       "name": "Name",
-      "image": "Image"
+      "image": "Image",
+      "games": "Games"
     }
   }
 }

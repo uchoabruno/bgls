@@ -1,0 +1,26 @@
+{
+  "bglsApp": {
+    "game": {
+      "home": {
+        "title": "Games",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Maak een nieuwe Game",
+        "createOrEditLabel": "Maak of wijzig een Game",
+        "notFound": "No Games found"
+      },
+      "created": "A new Game is created with identifier {{ param }}",
+      "updated": "A Game is updated with identifier {{ param }}",
+      "deleted": "A Game is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Bent u zeker dat u Game {{ id }} wilt verwijderen?"
+      },
+      "detail": {
+        "title": "Game"
+      },
+      "id": "ID",
+      "name": "Name",
+      "cover": "Cover",
+      "console": "Console"
+    }
+  }
+}

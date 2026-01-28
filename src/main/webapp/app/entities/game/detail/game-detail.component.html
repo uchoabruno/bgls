@@ -1,0 +1,53 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (game()) {
+      <div>
+        <h2 data-cy="gameDetailsHeading"><span jhiTranslate="bglsApp.game.detail.title">Game</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ game()!.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="bglsApp.game.name">Name</span></dt>
+          <dd>
+            <span>{{ game()!.name }}</span>
+          </dd>
+          <dt><span jhiTranslate="bglsApp.game.cover">Cover</span></dt>
+          <dd>
+            @if (game()!.cover) {
+              <div>
+                <a (click)="openFile(game()!.cover ?? '', game()!.coverContentType)">
+                  <img [src]="'data:' + game()!.coverContentType + ';base64,' + game()!.cover" style="max-width: 100%" alt="game" />
+                </a>
+                {{ game()!.coverContentType }}, {{ byteSize(game()!.cover ?? '') }}
+              </div>
+            }
+          </dd>
+          <dt><span jhiTranslate="bglsApp.game.console">Console</span></dt>
+          <dd>
+            @if (game()!.console) {
+              <div>
+                <a [routerLink]="['/console', game()!.console?.id, 'view']">{{ game()!.console?.name }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/game', game()!.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

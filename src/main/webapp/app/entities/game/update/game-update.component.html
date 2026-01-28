@@ -1,0 +1,106 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    <form name="editForm" novalidate (ngSubmit)="save()" [formGroup]="editForm">
+      <h2 id="jhi-game-heading" data-cy="GameCreateUpdateHeading" jhiTranslate="bglsApp.game.home.createOrEditLabel">
+        Create or edit a Game
+      </h2>
+
+      <div>
+        <jhi-alert-error></jhi-alert-error>
+
+        @if (editForm.controls.id.value !== null) {
+          <div class="mb-3">
+            <label class="form-label" for="field_id" jhiTranslate="bglsApp.game.id">ID</label>
+            <input type="number" class="form-control" name="id" id="field_id" data-cy="id" formControlName="id" [readonly]="true" />
+          </div>
+        }
+
+        <div class="mb-3">
+          <label class="form-label" for="field_name" jhiTranslate="bglsApp.game.name">Name</label>
+          <input type="text" class="form-control" name="name" id="field_name" data-cy="name" formControlName="name" />
+          @if (editForm.get('name')!.invalid && (editForm.get('name')!.dirty || editForm.get('name')!.touched)) {
+            <div>
+              @if (editForm.get('name')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_cover" jhiTranslate="bglsApp.game.cover">Cover</label>
+          <div>
+            @if (editForm.get('cover')!.value) {
+              <img
+                [src]="'data:' + editForm.get('coverContentType')!.value + ';base64,' + editForm.get('cover')!.value"
+                style="max-height: 100px"
+                alt="game"
+              />
+            }
+            @if (editForm.get('cover')!.value) {
+              <div class="form-text text-danger clearfix">
+                <span class="pull-start">{{ editForm.get('coverContentType')!.value }}, {{ byteSize(editForm.get('cover')!.value!) }}</span>
+                <button
+                  type="button"
+                  (click)="clearInputImage('cover', 'coverContentType', 'file_cover')"
+                  class="btn btn-secondary btn-xs pull-end"
+                >
+                  <fa-icon icon="times"></fa-icon>
+                </button>
+              </div>
+            }
+            <input
+              type="file"
+              id="file_cover"
+              data-cy="cover"
+              (change)="setFileData($event, 'cover', true)"
+              accept="image/*"
+              jhiTranslate="entity.action.addimage"
+            />
+          </div>
+          <input type="hidden" class="form-control" name="cover" id="field_cover" data-cy="cover" formControlName="cover" />
+          <input
+            type="hidden"
+            class="form-control"
+            name="coverContentType"
+            id="field_coverContentType"
+            formControlName="coverContentType"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="field_console" jhiTranslate="bglsApp.game.console">Console</label>
+          <select
+            class="form-control"
+            id="field_console"
+            data-cy="console"
+            name="console"
+            formControlName="console"
+            [compareWith]="compareConsole"
+          >
+            <option [ngValue]="null"></option>
+            @for (consoleOption of consolesSharedCollection; track $index) {
+              <option [ngValue]="consoleOption">{{ consoleOption.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button type="button" id="cancel-save" data-cy="entityCreateCancelButton" class="btn btn-secondary" (click)="previousState()">
+          <fa-icon icon="ban"></fa-icon>&nbsp;<span jhiTranslate="entity.action.cancel">Cancel</span>
+        </button>
+
+        <button
+          type="submit"
+          id="save-entity"
+          data-cy="entityCreateSaveButton"
+          [disabled]="editForm.invalid || isSaving"
+          class="btn btn-primary"
+        >
+          <fa-icon icon="save"></fa-icon>&nbsp;<span jhiTranslate="entity.action.save">Save</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

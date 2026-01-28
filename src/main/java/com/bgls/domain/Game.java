@@ -3,19 +3,17 @@ package com.bgls.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 /**
- * A Console.
+ * A Game.
  */
-@Table("console")
+@Table("game")
 @SuppressWarnings("common-java:DuplicatedBlocks")
-public class Console implements Serializable {
+public class Game implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -27,15 +25,18 @@ public class Console implements Serializable {
     @Column("name")
     private String name;
 
-    @Column("image")
-    private byte[] image;
+    @Column("cover")
+    private byte[] cover;
 
-    @Column("image_content_type")
-    private String imageContentType;
+    @Column("cover_content_type")
+    private String coverContentType;
 
     @Transient
-    @JsonIgnoreProperties(value = { "console" }, allowSetters = true)
-    private Set<Game> games = new HashSet<>();
+    @JsonIgnoreProperties(value = { "games" }, allowSetters = true)
+    private Console console;
+
+    @Column("console_id")
+    private Long consoleId;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here
 
@@ -43,7 +44,7 @@ public class Console implements Serializable {
         return this.id;
     }
 
-    public Console id(Long id) {
+    public Game id(Long id) {
         this.setId(id);
         return this;
     }
@@ -56,7 +57,7 @@ public class Console implements Serializable {
         return this.name;
     }
 
-    public Console name(String name) {
+    public Game name(String name) {
         this.setName(name);
         return this;
     }
@@ -65,61 +66,52 @@ public class Console implements Serializable {
         this.name = name;
     }
 
-    public byte[] getImage() {
-        return this.image;
+    public byte[] getCover() {
+        return this.cover;
     }
 
-    public Console image(byte[] image) {
-        this.setImage(image);
+    public Game cover(byte[] cover) {
+        this.setCover(cover);
         return this;
     }
 
-    public void setImage(byte[] image) {
-        this.image = image;
+    public void setCover(byte[] cover) {
+        this.cover = cover;
     }
 
-    public String getImageContentType() {
-        return this.imageContentType;
+    public String getCoverContentType() {
+        return this.coverContentType;
     }
 
-    public Console imageContentType(String imageContentType) {
-        this.imageContentType = imageContentType;
+    public Game coverContentType(String coverContentType) {
+        this.coverContentType = coverContentType;
         return this;
     }
 
-    public void setImageContentType(String imageContentType) {
-        this.imageContentType = imageContentType;
+    public void setCoverContentType(String coverContentType) {
+        this.coverContentType = coverContentType;
     }
 
-    public Set<Game> getGames() {
-        return this.games;
+    public Console getConsole() {
+        return this.console;
     }
 
-    public void setGames(Set<Game> games) {
-        if (this.games != null) {
-            this.games.forEach(i -> i.setConsole(null));
-        }
-        if (games != null) {
-            games.forEach(i -> i.setConsole(this));
-        }
-        this.games = games;
+    public void setConsole(Console console) {
+        this.console = console;
+        this.consoleId = console != null ? console.getId() : null;
     }
 
-    public Console games(Set<Game> games) {
-        this.setGames(games);
+    public Game console(Console console) {
+        this.setConsole(console);
         return this;
     }
 
-    public Console addGames(Game game) {
-        this.games.add(game);
-        game.setConsole(this);
-        return this;
+    public Long getConsoleId() {
+        return this.consoleId;
     }
 
-    public Console removeGames(Game game) {
-        this.games.remove(game);
-        game.setConsole(null);
-        return this;
+    public void setConsoleId(Long console) {
+        this.consoleId = console;
     }
 
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here
@@ -129,10 +121,10 @@ public class Console implements Serializable {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof Console)) {
+        if (!(o instanceof Game)) {
             return false;
         }
-        return getId() != null && getId().equals(((Console) o).getId());
+        return getId() != null && getId().equals(((Game) o).getId());
     }
 
     @Override
@@ -144,11 +136,11 @@ public class Console implements Serializable {
     // prettier-ignore
     @Override
     public String toString() {
-        return "Console{" +
+        return "Game{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
-            ", image='" + getImage() + "'" +
-            ", imageContentType='" + getImageContentType() + "'" +
+            ", cover='" + getCover() + "'" +
+            ", coverContentType='" + getCoverContentType() + "'" +
             "}";
     }
 }
