@@ -1,0 +1,46 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (item()) {
+      <div>
+        <h2 data-cy="itemDetailsHeading"><span jhiTranslate="bglsApp.item.detail.title">Item</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ item()!.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="bglsApp.item.owner">Owner</span></dt>
+          <dd>
+            <span>{{ item()!.owner?.login }}</span>
+          </dd>
+          <dt><span jhiTranslate="bglsApp.item.lendedTo">Lended To</span></dt>
+          <dd>
+            <span>{{ item()!.lendedTo?.login }}</span>
+          </dd>
+          <dt><span jhiTranslate="bglsApp.item.game">Game</span></dt>
+          <dd>
+            @if (item()!.game) {
+              <div>
+                <a [routerLink]="['/game', item()!.game?.id, 'view']">{{ item()!.game?.name }}</a>
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/item', item()!.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>

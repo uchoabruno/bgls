@@ -9,7 +9,8 @@
         "main": "Entiteiten",
         "jhipster-needle-menu-add-entry": "JHipster will add additional entities here (do not translate!)",
         "console": "Console",
-        "game": "Game"
+        "game": "Game",
+        "item": "Item"
       },
       "account": {
         "main": "Gebruiker",

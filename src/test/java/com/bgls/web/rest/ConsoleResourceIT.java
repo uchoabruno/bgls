@@ -377,7 +377,7 @@ class ConsoleResourceIT {
         Console partialUpdatedConsole = new Console();
         partialUpdatedConsole.setId(console.getId());
 
-        partialUpdatedConsole.image(UPDATED_IMAGE).imageContentType(UPDATED_IMAGE_CONTENT_TYPE);
+        partialUpdatedConsole.name(UPDATED_NAME);
 
         webTestClient
             .patch()

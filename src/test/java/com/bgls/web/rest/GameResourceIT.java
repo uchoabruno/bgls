@@ -530,8 +530,6 @@ class GameResourceIT {
         Game partialUpdatedGame = new Game();
         partialUpdatedGame.setId(game.getId());
 
-        partialUpdatedGame.name(UPDATED_NAME);
-
         webTestClient
             .patch()
             .uri(ENTITY_API_URL_ID, partialUpdatedGame.getId())

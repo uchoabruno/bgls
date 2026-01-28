@@ -3,6 +3,8 @@ package com.bgls.domain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
@@ -34,6 +36,10 @@ public class Game implements Serializable {
     @Transient
     @JsonIgnoreProperties(value = { "games" }, allowSetters = true)
     private Console console;
+
+    @Transient
+    @JsonIgnoreProperties(value = { "owner", "lendedTo", "game" }, allowSetters = true)
+    private Set<Item> items = new HashSet<>();
 
     @Column("console_id")
     private Long consoleId;
@@ -103,6 +109,37 @@ public class Game implements Serializable {
 
     public Game console(Console console) {
         this.setConsole(console);
+        return this;
+    }
+
+    public Set<Item> getItems() {
+        return this.items;
+    }
+
+    public void setItems(Set<Item> items) {
+        if (this.items != null) {
+            this.items.forEach(i -> i.setGame(null));
+        }
+        if (items != null) {
+            items.forEach(i -> i.setGame(this));
+        }
+        this.items = items;
+    }
+
+    public Game items(Set<Item> items) {
+        this.setItems(items);
+        return this;
+    }
+
+    public Game addItems(Item item) {
+        this.items.add(item);
+        item.setGame(this);
+        return this;
+    }
+
+    public Game removeItems(Item item) {
+        this.items.remove(item);
+        item.setGame(null);
         return this;
     }
 

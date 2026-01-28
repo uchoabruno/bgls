@@ -1,24 +1,26 @@
 import { IConsole, NewConsole } from './console.model';
 
 export const sampleWithRequiredData: IConsole = {
-  id: 22022,
-  name: 'after stretcher',
+  id: 1157,
+  name: 'unnaturally meanwhile',
 };
 
 export const sampleWithPartialData: IConsole = {
-  id: 31971,
-  name: 'resident only once',
+  id: 9712,
+  name: 'lid',
+  image: '../fake-data/blob/hipster.png',
+  imageContentType: 'unknown',
 };
 
 export const sampleWithFullData: IConsole = {
-  id: 8565,
-  name: 'furthermore provided',
+  id: 32227,
+  name: 'voting ferry',
   image: '../fake-data/blob/hipster.png',
   imageContentType: 'unknown',
 };
 
 export const sampleWithNewData: NewConsole = {
-  name: 'reverberate',
+  name: 'hence wholly hoax',
   id: null,
 };
 

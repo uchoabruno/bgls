@@ -49,10 +49,10 @@ describe('Game Management Update Component', () => {
   describe('ngOnInit', () => {
     it('Should call Console query and add missing value', () => {
       const game: IGame = { id: 456 };
-      const console: IConsole = { id: 25986 };
+      const console: IConsole = { id: 14463 };
       game.console = console;
 
-      const consoleCollection: IConsole[] = [{ id: 30186 }];
+      const consoleCollection: IConsole[] = [{ id: 19084 }];
       jest.spyOn(consoleService, 'query').mockReturnValue(of(new HttpResponse({ body: consoleCollection })));
       const additionalConsoles = [console];
       const expectedCollection: IConsole[] = [...additionalConsoles, ...consoleCollection];
@@ -71,7 +71,7 @@ describe('Game Management Update Component', () => {
 
     it('Should update editForm', () => {
       const game: IGame = { id: 456 };
-      const console: IConsole = { id: 25058 };
+      const console: IConsole = { id: 29600 };
       game.console = console;
 
       activatedRoute.data = of({ game });

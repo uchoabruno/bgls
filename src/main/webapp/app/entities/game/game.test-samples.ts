@@ -1,24 +1,26 @@
 import { IGame, NewGame } from './game.model';
 
 export const sampleWithRequiredData: IGame = {
-  id: 15843,
-  name: 'duh',
+  id: 1944,
+  name: 'overindulge',
 };
 
 export const sampleWithPartialData: IGame = {
-  id: 26482,
-  name: 'boo',
+  id: 18143,
+  name: 'near annually remorseful',
+  cover: '../fake-data/blob/hipster.png',
+  coverContentType: 'unknown',
 };
 
 export const sampleWithFullData: IGame = {
-  id: 3371,
-  name: 'athwart whenever nutritious',
+  id: 13778,
+  name: 'than gee drat',
   cover: '../fake-data/blob/hipster.png',
   coverContentType: 'unknown',
 };
 
 export const sampleWithNewData: NewGame = {
-  name: 'certainly whenever',
+  name: 'though',
   id: null,
 };
 

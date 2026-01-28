@@ -34,7 +34,7 @@ public class Console implements Serializable {
     private String imageContentType;
 
     @Transient
-    @JsonIgnoreProperties(value = { "console" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "console", "items" }, allowSetters = true)
     private Set<Game> games = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here

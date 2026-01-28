@@ -20,7 +20,8 @@
       "id": "ID",
       "name": "Name",
       "cover": "Cover",
-      "console": "Console"
+      "console": "Console",
+      "items": "Items"
     }
   }
 }
