@@ -1,0 +1,25 @@
+{
+  "bglsApp": {
+    "console": {
+      "home": {
+        "title": "Consoles",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Maak een nieuwe Console",
+        "createOrEditLabel": "Maak of wijzig een Console",
+        "notFound": "No Consoles found"
+      },
+      "created": "A new Console is created with identifier {{ param }}",
+      "updated": "A Console is updated with identifier {{ param }}",
+      "deleted": "A Console is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Bent u zeker dat u Console {{ id }} wilt verwijderen?"
+      },
+      "detail": {
+        "title": "Console"
+      },
+      "id": "ID",
+      "name": "Name",
+      "image": "Image"
+    }
+  }
+}

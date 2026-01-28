@@ -1,0 +1,49 @@
+<div class="d-flex justify-content-center">
+  <div class="col-8">
+    @if (console()) {
+      <div>
+        <h2 data-cy="consoleDetailsHeading"><span jhiTranslate="bglsApp.console.detail.title">Console</span></h2>
+
+        <hr />
+
+        <jhi-alert-error></jhi-alert-error>
+
+        <jhi-alert></jhi-alert>
+
+        <dl class="row-md jh-entity-details">
+          <dt><span jhiTranslate="global.field.id">ID</span></dt>
+          <dd>
+            <span>{{ console()!.id }}</span>
+          </dd>
+          <dt><span jhiTranslate="bglsApp.console.name">Name</span></dt>
+          <dd>
+            <span>{{ console()!.name }}</span>
+          </dd>
+          <dt><span jhiTranslate="bglsApp.console.image">Image</span></dt>
+          <dd>
+            @if (console()!.image) {
+              <div>
+                <a (click)="openFile(console()!.image ?? '', console()!.imageContentType)">
+                  <img
+                    [src]="'data:' + console()!.imageContentType + ';base64,' + console()!.image"
+                    style="max-width: 100%"
+                    alt="console"
+                  />
+                </a>
+                {{ console()!.imageContentType }}, {{ byteSize(console()!.image ?? '') }}
+              </div>
+            }
+          </dd>
+        </dl>
+
+        <button type="submit" (click)="previousState()" class="btn btn-info" data-cy="entityDetailsBackButton">
+          <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span jhiTranslate="entity.action.back">Back</span>
+        </button>
+
+        <button type="button" [routerLink]="['/console', console()!.id, 'edit']" class="btn btn-primary">
+          <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span jhiTranslate="entity.action.edit">Edit</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>
