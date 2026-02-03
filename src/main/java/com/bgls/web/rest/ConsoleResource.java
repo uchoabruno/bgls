@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
@@ -54,6 +55,7 @@ public class ConsoleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public Mono<ResponseEntity<ConsoleDTO>> createConsole(@Valid @RequestBody ConsoleDTO consoleDTO) throws URISyntaxException {
         log.debug("REST request to save Console : {}", consoleDTO);
         if (consoleDTO.getId() != null) {
@@ -83,6 +85,7 @@ public class ConsoleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public Mono<ResponseEntity<ConsoleDTO>> updateConsole(
         @PathVariable(value = "id", required = false) final Long id,
         @Valid @RequestBody ConsoleDTO consoleDTO
@@ -126,6 +129,7 @@ public class ConsoleResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PatchMapping(value = "/{id}", consumes = { "application/json", "application/merge-patch+json" })
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public Mono<ResponseEntity<ConsoleDTO>> partialUpdateConsole(
         @PathVariable(value = "id", required = false) final Long id,
         @NotNull @RequestBody ConsoleDTO consoleDTO
@@ -199,6 +203,7 @@ public class ConsoleResource {
      * @return the {@link ResponseEntity} with status {@code 204 (NO_CONTENT)}.
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
     public Mono<ResponseEntity<Void>> deleteConsole(@PathVariable("id") Long id) {
         log.debug("REST request to delete Console : {}", id);
         return consoleService
