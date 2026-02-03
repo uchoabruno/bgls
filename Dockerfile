@@ -23,9 +23,9 @@ RUN npm run webapp:prod
 # dentro do diretório de trabalho do Maven. Aqui, como estamos em um ambiente separado,
 # a saída estará em /app/target/classes/static.
 
-# Stage 1: Build the Java application (without frontend build)
-# Usamos uma imagem temurin Java 17 específica para arm64
-FROM --platform=linux/arm64 eclipse-temurin:17-jre-focal AS backend-builder
+# Stage 1: Build the Java application (with JDK for compilation)
+# Usamos uma imagem temurin Java 17 específica para arm64 (agora JDK!)
+FROM --platform=linux/arm64 eclipse-temurin:17-jdk-focal AS backend-builder
 LABEL maintainer="bgls"
 
 # Argumentos para instalação do Maven e configuração de usuário
@@ -58,10 +58,11 @@ ENV PATH=${MAVEN_HOME}/bin:${PATH}
 WORKDIR /app
 USER ${CONTAINER_USER}
 
-# Copia o wrapper Maven e o pom.xml
+# Copia o wrapper Maven, o pom.xml e agora o sonar-project.properties
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} mvnw .
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} .mvn .mvn
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} pom.xml .
+COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} sonar-project.properties .
 
 # Copia o código fonte Java e recursos
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} src src

@@ -24,8 +24,8 @@
         -->
         <maven.version>3.2.5</maven.version>
         <java.version>17</java.version>
-        <node.version>v20.15.0</node.version>
-        <npm.version>10.8.1</npm.version>
+        <node.version>v18.19.0</node.version> <!-- Alinhado com Node.js 18 LTS -->
+        <npm.version>9.2.0</npm.version>     <!-- Alinhado com npm para Node.js 18.19.0 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
@@ -77,6 +77,8 @@
         <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
         <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
         <springdoc-openapi-starter-webflux-api.version>2.5.0</springdoc-openapi-starter-webflux-api.version>
+        <!-- ADICIONADO: Propriedade para controlar o skip do build do frontend -->
+        <skip.frontend.build>false</skip.frontend.build>
     </properties>
 
     <dependencies>
@@ -340,6 +342,11 @@
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
             </plugin>
+            <!-- Importante: Declare frontend-maven-plugin aqui para que as configurações de pluginManagement sejam aplicadas -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -385,9 +392,12 @@
                     <artifactId>frontend-maven-plugin</artifactId>
                     <version>${frontend-maven-plugin.version}</version>
                     <configuration>
-                        <installDirectory>target</installDirectory>
+                        <installDirectory>target</installDirectory> <!-- Padrão JHipster: instala Node/npm em target/node -->
                         <nodeVersion>${node.version}</nodeVersion>
                         <npmVersion>${npm.version}</npmVersion>
+                        <downloadNode>true</downloadNode> <!-- Deixa o plugin baixar o Node (para builds locais) -->
+                        <downloadNpm>true</downloadNpm>   <!-- Deixa o plugin baixar o npm (para builds locais) -->
+                        <skip>${skip.frontend.build}</skip> <!-- ADICIONADO: Pula o plugin se a propriedade for 'true' -->
                     </configuration>
                 </plugin>
                 <plugin>
@@ -486,7 +496,7 @@
                         <configLocation>checkstyle.xml</configLocation>
                         <includes>pom.xml,README.md</includes>
                         <excludes>.git/**/*,target/**/*,node_modules/**/*</excludes>
-                        <sourceDirectories>./</sourceDirectories>
+
                     </configuration>
                     <executions>
                         <execution>
@@ -506,7 +516,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>${java.version}</source>
+
                         <target>${java.version}</target>
                         <parameters>true</parameters>
                         <annotationProcessorPaths>
@@ -605,7 +615,7 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin.version}</version>
                     <configuration>
-                        <source>${maven.compiler.source}</source>
+
                     </configuration>
                 </plugin>
                 <plugin>
@@ -932,6 +942,7 @@
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
                         <executions>
+                            <!-- Essas execuções herdam a configuração 'skip' do pluginManagement -->
                             <execution>
                                 <id>install-node-and-npm</id>
                                 <goals>
@@ -1082,6 +1093,7 @@
                         <groupId>com.github.eirslett</groupId>
                         <artifactId>frontend-maven-plugin</artifactId>
                         <executions>
+                            <!-- Essas execuções herdam a configuração 'skip' do pluginManagement -->
                             <execution>
                                 <id>install-node-and-npm</id>
                                 <goals>
