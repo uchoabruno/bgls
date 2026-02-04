@@ -12,6 +12,7 @@
         id="jh-create-entity"
         data-cy="entityCreateButton"
         class="btn btn-primary jh-create-entity create-console"
+        [disabled]="isDisabled"
         [routerLink]="['/console/new']"
       >
         <fa-icon icon="plus"></fa-icon>
@@ -81,15 +82,23 @@
                     <span class="d-none d-md-inline" jhiTranslate="entity.action.view">View</span>
                   </a>
 
-                  <a [routerLink]="['/console', console.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
-                    <fa-icon icon="pencil-alt"></fa-icon>
-                    <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
-                  </a>
+                  @if (!isDisabled) {
+                    <a [routerLink]="['/console', console.id, 'edit']" class="btn btn-primary btn-sm" data-cy="entityEditButton">
+                      <fa-icon icon="pencil-alt"></fa-icon>
+                      <span class="d-none d-md-inline" jhiTranslate="entity.action.edit">Edit</span>
+                    </a>
 
-                  <button type="submit" (click)="delete(console)" class="btn btn-danger btn-sm" data-cy="entityDeleteButton">
-                    <fa-icon icon="times"></fa-icon>
-                    <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
-                  </button>
+                    <button
+                      type="submit"
+                      (click)="delete(console)"
+                      class="btn btn-danger btn-sm"
+                      data-cy="entityDeleteButton"
+                      [disabled]="isDisabled"
+                    >
+                      <fa-icon icon="times"></fa-icon>
+                      <span class="d-none d-md-inline" jhiTranslate="entity.action.delete">Delete</span>
+                    </button>
+                  }
                 </div>
               </td>
             </tr>

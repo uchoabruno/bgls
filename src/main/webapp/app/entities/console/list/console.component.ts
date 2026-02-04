@@ -12,6 +12,8 @@ import { DataUtils } from 'app/core/util/data-util.service';
 import { IConsole } from '../console.model';
 import { EntityArrayResponseType, ConsoleService } from '../service/console.service';
 import { ConsoleDeleteDialogComponent } from '../delete/console-delete-dialog.component';
+import { AccountService } from '../../../core/auth/account.service';
+import { Authority } from '../../../config/authority.constants';
 
 @Component({
   standalone: true,
@@ -37,15 +39,27 @@ export class ConsoleComponent implements OnInit {
 
   public router = inject(Router);
   protected consoleService = inject(ConsoleService);
+  protected accountService = inject(AccountService);
   protected activatedRoute = inject(ActivatedRoute);
   protected sortService = inject(SortService);
   protected dataUtils = inject(DataUtils);
   protected modalService = inject(NgbModal);
   protected ngZone = inject(NgZone);
 
+  private _isDisabled: boolean | undefined;
+
+  set isDisabled(value) {
+    this._isDisabled = value;
+  }
+  get isDisabled() {
+    return this._isDisabled;
+  }
+
   trackId = (_index: number, item: IConsole): number => this.consoleService.getConsoleIdentifier(item);
 
   ngOnInit(): void {
+    this.isDisabled = !this.accountService.hasAnyAuthority(Authority.ADMIN);
+
     this.subscription = combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data])
       .pipe(
         tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
