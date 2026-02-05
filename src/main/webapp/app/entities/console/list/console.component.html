@@ -36,13 +36,6 @@
       <table class="table table-striped" aria-describedby="page-heading">
         <thead>
           <tr jhiSort [sortState]="sortState" (sortChange)="navigateToWithComponentValues($event)">
-            <th scope="col" jhiSortBy="id">
-              <div class="d-flex">
-                <span jhiTranslate="global.field.id">ID</span>
-
-                <fa-icon class="p-1" icon="sort"></fa-icon>
-              </div>
-            </th>
             <th scope="col" jhiSortBy="name">
               <div class="d-flex">
                 <span jhiTranslate="bglsApp.console.name">Name</span>
@@ -63,16 +56,12 @@
         <tbody>
           @for (console of consoles; track trackId) {
             <tr data-cy="entityTable">
-              <td>
-                <a [routerLink]="['/console', console.id, 'view']">{{ console.id }}</a>
-              </td>
               <td>{{ console.name }}</td>
               <td>
                 @if (console.image) {
                   <a (click)="openFile(console.image, console.imageContentType)">
                     <img [src]="'data:' + console.imageContentType + ';base64,' + console.image" style="max-height: 30px" alt="console" />
                   </a>
-                  <span>{{ console.imageContentType }}, {{ byteSize(console.image) }}</span>
                 }
               </td>
               <td class="text-end">
