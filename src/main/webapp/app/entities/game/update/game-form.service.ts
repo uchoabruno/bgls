@@ -46,7 +46,9 @@ export class GameFormService {
       }),
       cover: new FormControl(gameRawValue.cover),
       coverContentType: new FormControl(gameRawValue.coverContentType),
-      console: new FormControl(gameRawValue.console),
+      console: new FormControl(gameRawValue.console, {
+        validators: [Validators.required],
+      }),
     });
   }
 

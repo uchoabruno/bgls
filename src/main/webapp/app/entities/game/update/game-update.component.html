@@ -83,6 +83,13 @@
               <option [ngValue]="consoleOption">{{ consoleOption.name }}</option>
             }
           </select>
+          @if (editForm.get('console')!.invalid && (editForm.get('console')!.dirty || editForm.get('console')!.touched)) {
+            <div>
+              @if (editForm.get('console')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
         </div>
       </div>
 
