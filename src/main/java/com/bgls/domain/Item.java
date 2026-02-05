@@ -1,6 +1,7 @@
 package com.bgls.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
@@ -30,12 +31,14 @@ public class Item implements Serializable {
     @JsonIgnoreProperties(value = { "console", "items" }, allowSetters = true)
     private Game game;
 
+    @NotNull(message = "must not be null")
     @Column("owner_id")
     private Long ownerId;
 
     @Column("lended_to_id")
     private Long lendedToId;
 
+    @NotNull(message = "must not be null")
     @Column("game_id")
     private Long gameId;
 
