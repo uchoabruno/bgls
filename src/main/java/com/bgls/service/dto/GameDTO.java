@@ -21,6 +21,7 @@ public class GameDTO implements Serializable {
 
     private String coverContentType;
 
+    @NotNull(message = "must not be null")
     private ConsoleDTO console;
 
     public Long getId() {

@@ -41,6 +41,7 @@ public class Game implements Serializable {
     @JsonIgnoreProperties(value = { "owner", "lendedTo", "game" }, allowSetters = true)
     private Set<Item> items = new HashSet<>();
 
+    @NotNull(message = "must not be null")
     @Column("console_id")
     private Long consoleId;
 
