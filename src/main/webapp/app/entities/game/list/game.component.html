@@ -36,13 +36,6 @@
       <table class="table table-striped" aria-describedby="page-heading">
         <thead>
           <tr jhiSort [sortState]="sortState" (sortChange)="navigateToWithComponentValues($event)">
-            <th scope="col" jhiSortBy="id">
-              <div class="d-flex">
-                <span jhiTranslate="global.field.id">ID</span>
-
-                <fa-icon class="p-1" icon="sort"></fa-icon>
-              </div>
-            </th>
             <th scope="col" jhiSortBy="name">
               <div class="d-flex">
                 <span jhiTranslate="bglsApp.game.name">Name</span>
@@ -69,16 +62,12 @@
         <tbody infinite-scroll (scrolled)="loadNextPage()" [infiniteScrollDisabled]="!hasMorePage()" [infiniteScrollDistance]="0">
           @for (game of games; track trackId) {
             <tr data-cy="entityTable">
-              <td>
-                <a [routerLink]="['/game', game.id, 'view']">{{ game.id }}</a>
-              </td>
               <td>{{ game.name }}</td>
               <td>
                 @if (game.cover) {
                   <a (click)="openFile(game.cover, game.coverContentType)">
                     <img [src]="'data:' + game.coverContentType + ';base64,' + game.cover" style="max-height: 30px" alt="game" />
                   </a>
-                  <span>{{ game.coverContentType }}, {{ byteSize(game.cover) }}</span>
                 }
               </td>
               <td>
