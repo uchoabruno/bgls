@@ -17,6 +17,8 @@ import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
 import { GameDeleteDialogComponent } from '../delete/game-delete-dialog.component';
 import { EntityArrayResponseType, GameService } from '../service/game.service';
 import { IGame } from '../game.model';
+import { Authority } from '../../../config/authority.constants';
+import { AccountService } from '../../../core/auth/account.service';
 
 @Component({
   standalone: true,
@@ -48,6 +50,7 @@ export class GameComponent implements OnInit {
 
   public router = inject(Router);
   protected gameService = inject(GameService);
+  protected accountService = inject(AccountService);
   protected activatedRoute = inject(ActivatedRoute);
   protected sortService = inject(SortService);
   protected parseLinks = inject(ParseLinks);
@@ -55,9 +58,21 @@ export class GameComponent implements OnInit {
   protected modalService = inject(NgbModal);
   protected ngZone = inject(NgZone);
 
+  private _isDisabled: boolean | undefined;
+
+  set isDisabled(value) {
+    this._isDisabled = value;
+  }
+
+  get isDisabled() {
+    return this._isDisabled;
+  }
+
   trackId = (_index: number, item: IGame): number => this.gameService.getGameIdentifier(item);
 
   ngOnInit(): void {
+    this.isDisabled = !this.accountService.hasAnyAuthority(Authority.ADMIN);
+
     this.subscription = combineLatest([this.activatedRoute.queryParamMap, this.activatedRoute.data])
       .pipe(
         tap(([params, data]) => this.fillComponentAttributeFromRoute(params, data)),
