@@ -40,9 +40,13 @@ export class ItemFormService {
           validators: [Validators.required],
         },
       ),
-      owner: new FormControl(itemRawValue.owner),
+      owner: new FormControl(itemRawValue.owner, {
+        validators: [Validators.required],
+      }),
       lendedTo: new FormControl(itemRawValue.lendedTo),
-      game: new FormControl(itemRawValue.game),
+      game: new FormControl(itemRawValue.game, {
+        validators: [Validators.required],
+      }),
     });
   }
 

@@ -23,6 +23,13 @@
               <option [ngValue]="userOption">{{ userOption.login }}</option>
             }
           </select>
+          @if (editForm.get('owner')!.invalid && (editForm.get('owner')!.dirty || editForm.get('owner')!.touched)) {
+            <div>
+              @if (editForm.get('owner')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
         </div>
 
         <div class="mb-3">
@@ -50,6 +57,13 @@
               <option [ngValue]="gameOption">{{ gameOption.name }}</option>
             }
           </select>
+          @if (editForm.get('game')!.invalid && (editForm.get('game')!.dirty || editForm.get('game')!.touched)) {
+            <div>
+              @if (editForm.get('game')?.errors?.required) {
+                <small class="form-text text-danger" jhiTranslate="entity.validation.required">This field is required.</small>
+              }
+            </div>
+          }
         </div>
       </div>
 
