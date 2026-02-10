@@ -33,6 +33,7 @@ jobs:
         registry: ${{ secrets.DOCKER_REGISTRY_HOST }}
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+        registry-url: http://192.168.68.110:5005
 
     # Passo 4: Construir e ENVIAR a imagem para ARM64
     # Usamos 'docker buildx build' com --push para enviar diretamente para o registry.
