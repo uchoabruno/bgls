@@ -14,6 +14,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set Docker API Version
+        run: echo "DOCKER_API_VERSION=1.43" >> $GITHUB_ENV
+
       # Passo 1: Configurar QEMU para emulação de arquitetura
       # Isso permite que o runner AMD64 execute comandos ARM64 durante o build
       - name: Set up QEMU
