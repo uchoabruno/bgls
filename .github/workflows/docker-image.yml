@@ -8,20 +8,31 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted # O runner do GitHub Actions é AMD64
+    runs-on: [self-hosted, linux, amd64]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Passo 2: Configurar Docker Buildx
-      # O Buildx é a ferramenta moderna do Docker para builds avançados, incluindo multi-arquitetura
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        # A action setup-buildx-action já configura um builder,
+        # mas vamos tentar garantir que o usamos explicitamente.
 
-      # Passo 3: Fazer login no seu Docker Registry local no NAS
-      # Você precisará configurar DOCKER_USERNAME e DOCKER_PASSWORD como GitHub Secrets
-      # DOCKER_REGISTRY será o endereço IP e porta do seu NAS (ex: 192.168.68.110:5005)
+      # --- NOVO PASSO: Criar e inspecionar um builder explícito ---
+      - name: Create and Inspect Buildx Builder
+        run: |
+          # Remove builders existentes para garantir um estado limpo
+          docker buildx rm mybuilder || true
+          # Cria um novo builder usando o driver 'docker' (que usa o daemon do host)
+          # e o define como padrão (--use).
+          docker buildx create --driver docker --use --name mybuilder
+          # Inspeciona o builder para garantir que ele esteja ativo
+          docker buildx inspect --bootstrap
+          # Lista os builders para verificar o status
+          docker buildx ls
+      # --- FIM DO NOVO PASSO ---
+
       - name: Login to Docker Registry
         uses: docker/login-action@v3
         with:
@@ -29,13 +40,77 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Passo 4: Construir e ENVIAR a imagem para ARM64
-      # Usamos 'docker buildx build' com --push para enviar diretamente para o registry.
-      # O -t agora inclui o endereço completo do registry.
+      # --- NOVO PASSO: Imprimir o valor do DOCKER_REGISTRY_HOST para debug ---
+      - name: Print DOCKER_REGISTRY_HOST for debugging
+        run: echo "DOCKER_REGISTRY_HOST used: ${{ secrets.DOCKER_REGISTRY_HOST }}"
+      # --- FIM DO NOVO PASSO ---
+
       - name: Build and Push Docker image for AMD64
         run: |
           docker buildx build \
-            --platform linux/amd64  \
+            --builder mybuilder \
             -t ${{ secrets.DOCKER_REGISTRY_HOST }}/bgls:latest \
             --push \
             .
+
+      - name: Deploy application on Ubuntu Server
+        run: |
+          /home/YOUR_UBUNTU_USER/bgls-app/deploy.sh
+name: Docker Image CI
+
+on:
+  push:
+    branches: ['master']
+  pull_request:
+    branches: ['master']
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, amd64]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        # A action setup-buildx-action já configura um builder,
+        # mas vamos tentar garantir que o usamos explicitamente.
+
+      # --- NOVO PASSO: Criar e inspecionar um builder explícito ---
+      - name: Create and Inspect Buildx Builder
+        run: |
+          # Remove builders existentes para garantir um estado limpo
+          docker buildx rm mybuilder || true
+          # Cria um novo builder usando o driver 'docker' (que usa o daemon do host)
+          # e o define como padrão (--use).
+          docker buildx create --driver docker --use --name mybuilder
+          # Inspeciona o builder para garantir que ele esteja ativo
+          docker buildx inspect --bootstrap
+          # Lista os builders para verificar o status
+          docker buildx ls
+      # --- FIM DO NOVO PASSO ---
+
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY_HOST }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # --- NOVO PASSO: Imprimir o valor do DOCKER_REGISTRY_HOST para debug ---
+      - name: Print DOCKER_REGISTRY_HOST for debugging
+        run: echo "DOCKER_REGISTRY_HOST used: ${{ secrets.DOCKER_REGISTRY_HOST }}"
+      # --- FIM DO NOVO PASSO ---
+
+      - name: Build and Push Docker image for AMD64
+        run: |
+          docker buildx build \
+            --builder mybuilder \
+            -t ${{ secrets.DOCKER_REGISTRY_HOST }}/bgls:latest \
+            --push \
+            .
+
+      - name: Deploy application on Ubuntu Server
+        run: |
+          /home/YOUR_UBUNTU_USER/bgls-app/deploy.sh
