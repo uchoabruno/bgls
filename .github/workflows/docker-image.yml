@@ -31,10 +31,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Print DOCKER_REGISTRY_HOST for debugging
-        run: |
-          echo "DOCKER_REGISTRY_HOST used: ${{ secrets.DOCKER_REGISTRY_HOST }}"
-
       - name: Build and Push Docker image for AMD64
         run: |
           docker buildx build \
@@ -43,4 +39,4 @@ jobs:
             .
       - name: Deploy application on Ubuntu Server
         run: |
-          /home/YOUR_UBUNTU_USER/bgls-app/deploy.sh
+          /home/bruno/bgls-app/deploy.sh
