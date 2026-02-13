@@ -17,33 +17,22 @@ RUN npm run webapp:prod
 FROM eclipse-temurin:17-jdk-focal AS backend-builder
 LABEL maintainer="bgls"
 
-ARG MAVEN_VERSION=3.8.7
-ARG MAVEN_HOME=/usr/share/maven
 ARG CONTAINER_USER=appuser
 ARG CONTAINER_GROUP=appuser
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        curl unzip procps \
-        git gnupg2 libstdc++6 zlib1g locales \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip -o /tmp/maven.zip \
-    && unzip -q /tmp/maven.zip -d /usr/share \
-    && mv /usr/share/apache-maven-${MAVEN_VERSION} ${MAVEN_HOME} \
-    && ln -s ${MAVEN_HOME}/bin/mvn /usr/bin/mvn \
-    && rm /tmp/maven.zip \
-    && groupadd ${CONTAINER_GROUP} \
+# Apenas cria o usuário e grupo não-root para segurança
+# Removemos a instalação manual do Maven e outras dependências desnecessárias para o build.
+# O mvnw (Maven Wrapper) se encarrega de baixar o Maven se necessário.
+RUN groupadd ${CONTAINER_GROUP} \
     && useradd -ms /bin/bash -g ${CONTAINER_GROUP} ${CONTAINER_USER} \
     && mkdir -p /home/${CONTAINER_USER}/.m2 \
     && chown -R ${CONTAINER_USER}:${CONTAINER_GROUP} /home/${CONTAINER_USER}/.m2
-
-ENV MAVEN_HOME=${MAVEN_HOME}
-ENV PATH=${MAVEN_HOME}/bin:${PATH}
 
 WORKDIR /app
 USER ${CONTAINER_USER}
 
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} mvnw .
+RUN chmod +x mvnw
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} .mvn .mvn
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} pom.xml .
 COPY --chown=${CONTAINER_USER}:${CONTAINER_GROUP} sonar-project.properties .
