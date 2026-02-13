@@ -14,9 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set Docker API Version
-        run: echo "DOCKER_API_VERSION=1.43" >> $GITHUB_ENV
-
       # Passo 1: Configurar QEMU para emulação de arquitetura
       # Isso permite que o runner AMD64 execute comandos ARM64 durante o build
       - name: Set up QEMU
@@ -26,8 +23,6 @@ jobs:
       # O Buildx é a ferramenta moderna do Docker para builds avançados, incluindo multi-arquitetura
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        with:
-          driver: docker
 
       # Passo 3: Fazer login no seu Docker Registry local no NAS
       # Você precisará configurar DOCKER_USERNAME e DOCKER_PASSWORD como GitHub Secrets
