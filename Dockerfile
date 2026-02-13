@@ -1,6 +1,7 @@
-# This is the Dockerfile responsible for creating an image compatible with NAS
+# This is the Dockerfile responsible for creating an image compatible with Ubuntu Server (amd64)
 
-FROM --platform=linux/arm64 node:18-bullseye-slim AS frontend-builder
+# Frontend Build Stage
+FROM node:18-bullseye-slim AS frontend-builder
 LABEL maintainer="bgls"
 
 WORKDIR /app
@@ -12,7 +13,8 @@ COPY src/main/webapp src/main/webapp/
 RUN npm ci --prefer-offline --no-audit --loglevel=error
 RUN npm run webapp:prod
 
-FROM --platform=linux/arm64 eclipse-temurin:17-jdk-focal AS backend-builder
+# Backend Build Stage
+FROM eclipse-temurin:17-jdk-focal AS backend-builder
 LABEL maintainer="bgls"
 
 ARG MAVEN_VERSION=3.8.7
@@ -53,7 +55,8 @@ COPY --from=frontend-builder --chown=${CONTAINER_USER}:${CONTAINER_GROUP} /app/t
 ENV MAVEN_OPTS="-Xmx1G"
 RUN ./mvnw package -Pprod -DskipTests -Dskip.frontend.build=true
 
-FROM --platform=linux/arm64 eclipse-temurin:17-jre-focal AS final
+# Final Image Stage
+FROM eclipse-temurin:17-jre-focal AS final
 LABEL maintainer="bgls"
 
 ARG CONTAINER_USER=appuser

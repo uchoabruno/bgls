@@ -14,11 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Passo 1: Configurar QEMU para emulação de arquitetura
-      # Isso permite que o runner AMD64 execute comandos ARM64 durante o build
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
       # Passo 2: Configurar Docker Buildx
       # O Buildx é a ferramenta moderna do Docker para builds avançados, incluindo multi-arquitetura
       - name: Set up Docker Buildx
@@ -37,10 +32,10 @@ jobs:
       # Passo 4: Construir e ENVIAR a imagem para ARM64
       # Usamos 'docker buildx build' com --push para enviar diretamente para o registry.
       # O -t agora inclui o endereço completo do registry.
-      - name: Build and Push Docker image for ARM64
+      - name: Build and Push Docker image for AMD64
         run: |
           docker buildx build \
-            --platform linux/arm64 \
+            --platform linux/amd64  \
             -t ${{ secrets.DOCKER_REGISTRY_HOST }}/bgls:latest \
             --push \
             .
