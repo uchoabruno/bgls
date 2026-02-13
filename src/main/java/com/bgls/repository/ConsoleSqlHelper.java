@@ -1,5 +1,8 @@
 package com.bgls.repository;
 
+import com.bgls.domain.Console;
+import io.r2dbc.spi.Row;
+import io.r2dbc.spi.RowMetadata;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.relational.core.sql.Column;
@@ -16,5 +19,18 @@ public class ConsoleSqlHelper {
         columns.add(Column.aliased("image_content_type", table, columnPrefix + "_image_content_type"));
 
         return columns;
+    }
+
+    public static Console extract(Row row, RowMetadata metadata, String columnPrefix) {
+        if (row.get(columnPrefix + "_id", Long.class) == null) {
+            return null;
+        }
+
+        Console console = new Console();
+        console.setId(row.get(columnPrefix + "_id", Long.class));
+        console.setName(row.get(columnPrefix + "_name", String.class));
+        console.setImage(row.get(columnPrefix + "_image", byte[].class));
+        console.setImageContentType(row.get(columnPrefix + "_image_content_type", String.class));
+        return console;
     }
 }

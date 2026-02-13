@@ -1,5 +1,8 @@
 package com.bgls.repository;
 
+import com.bgls.domain.Game;
+import io.r2dbc.spi.Row;
+import io.r2dbc.spi.RowMetadata;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.relational.core.sql.Column;
@@ -17,5 +20,19 @@ public class GameSqlHelper {
 
         columns.add(Column.aliased("console_id", table, columnPrefix + "_console_id"));
         return columns;
+    }
+
+    public static Game extract(Row row, RowMetadata metadata, String columnPrefix) {
+        if (row.get(columnPrefix + "_id", Long.class) == null) {
+            return null;
+        }
+
+        Game game = new Game();
+        game.setId(row.get(columnPrefix + "_id", Long.class));
+        game.setName(row.get(columnPrefix + "_name", String.class));
+        game.cover(row.get(columnPrefix + "_cover", byte[].class));
+        game.setCoverContentType(row.get(columnPrefix + "_cover_content_type", String.class));
+        game.setConsoleId(row.get(columnPrefix + "_console_id", Long.class));
+        return game;
     }
 }

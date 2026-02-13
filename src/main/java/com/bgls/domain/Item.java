@@ -28,7 +28,7 @@ public class Item implements Serializable {
     private User lendedTo;
 
     @Transient
-    @JsonIgnoreProperties(value = { "console", "items" }, allowSetters = true)
+    @JsonIgnoreProperties(value = { "items" }, allowSetters = true)
     private Game game;
 
     @NotNull(message = "must not be null")

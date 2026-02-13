@@ -1,6 +1,9 @@
 package com.bgls.repository;
 
+import com.bgls.domain.Console;
+import com.bgls.domain.Game;
 import com.bgls.domain.Item;
+import com.bgls.repository.rowmapper.ConsoleRowMapper;
 import com.bgls.repository.rowmapper.GameRowMapper;
 import com.bgls.repository.rowmapper.ItemRowMapper;
 import com.bgls.repository.rowmapper.UserRowMapper;
@@ -44,6 +47,7 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
     private static final Table ownerTable = Table.aliased("jhi_user", "owner");
     private static final Table lendedToTable = Table.aliased("jhi_user", "lendedTo");
     private static final Table gameTable = Table.aliased("game", "game");
+    private final Table consoleTable = Table.aliased("console", "console");
 
     public ItemRepositoryInternalImpl(
         R2dbcEntityTemplate template,
@@ -52,7 +56,8 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
         GameRowMapper gameMapper,
         ItemRowMapper itemMapper,
         R2dbcEntityOperations entityOperations,
-        R2dbcConverter converter
+        R2dbcConverter converter,
+        ConsoleRowMapper consoleMapper
     ) {
         super(
             new MappingRelationalEntityInformation(converter.getMappingContext().getRequiredPersistentEntity(Item.class)),
@@ -77,6 +82,7 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
         columns.addAll(UserSqlHelper.getColumns(ownerTable, "owner"));
         columns.addAll(UserSqlHelper.getColumns(lendedToTable, "lendedTo"));
         columns.addAll(GameSqlHelper.getColumns(gameTable, "game"));
+        columns.addAll(ConsoleSqlHelper.getColumns(consoleTable, "console"));
         SelectFromAndJoinCondition selectFrom = Select.builder()
             .select(columns)
             .from(entityTable)
@@ -88,7 +94,10 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
             .equals(Column.create("id", lendedToTable))
             .leftOuterJoin(gameTable)
             .on(Column.create("game_id", entityTable))
-            .equals(Column.create("id", gameTable));
+            .equals(Column.create("id", gameTable))
+            .leftOuterJoin(consoleTable)
+            .on(Column.create("console_id", gameTable))
+            .equals(Column.create("id", consoleTable));
         // we do not support Criteria here for now as of https://github.com/jhipster/generator-jhipster/issues/18269
         String select = entityManager.createSelect(selectFrom, Item.class, pageable, whereClause);
         return db.sql(select).map(this::process);
@@ -124,7 +133,14 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
         Item entity = itemMapper.apply(row, "e");
         entity.setOwner(userMapper.apply(row, "owner"));
         entity.setLendedTo(userMapper.apply(row, "lendedTo"));
-        entity.setGame(gameMapper.apply(row, "game"));
+
+        Game game = GameSqlHelper.extract(row, metadata, "game");
+        if (game != null) {
+            Console console = ConsoleSqlHelper.extract(row, metadata, "console");
+            game.setConsole(console);
+        }
+        entity.setGame(game);
+
         return entity;
     }
 

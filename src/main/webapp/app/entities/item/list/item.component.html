@@ -60,6 +60,12 @@
                 <fa-icon class="p-1" icon="sort"></fa-icon>
               </div>
             </th>
+            <th scope="col" jhiSortBy="game.console.name">
+              <div class="d-flex">
+                <span jhiTranslate="bglsApp.item.game.console">Game</span>
+                <fa-icon class="p-1" icon="sort"></fa-icon>
+              </div>
+            </th>
             <th scope="col"></th>
           </tr>
         </thead>
@@ -79,6 +85,22 @@
                 @if (item.game) {
                   <div>
                     <a [routerLink]="['/game', item.game.id, 'view']">{{ item.game.name }}</a>
+                    @if (item.game!.cover) {
+                      <a [routerLink]="['/game', item.game.id, 'view']">
+                        <img
+                          [src]="'data:' + item.game!.coverContentType + ';base64,' + item.game!.cover"
+                          style="max-width: 5%"
+                          alt="game"
+                        />
+                      </a>
+                    }
+                  </div>
+                }
+              </td>
+              <td>
+                @if (item.game) {
+                  <div>
+                    {{ item.game.console?.name ?? 'No console' }}
                   </div>
                 }
               </td>
