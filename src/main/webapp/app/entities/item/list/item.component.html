@@ -35,13 +35,6 @@
       <table class="table table-striped" aria-describedby="page-heading">
         <thead>
           <tr jhiSort [sortState]="sortState" (sortChange)="navigateToWithComponentValues($event)">
-            <th scope="col" jhiSortBy="id">
-              <div class="d-flex">
-                <span jhiTranslate="global.field.id">ID</span>
-
-                <fa-icon class="p-1" icon="sort"></fa-icon>
-              </div>
-            </th>
             <th scope="col" jhiSortBy="owner.login">
               <div class="d-flex">
                 <span jhiTranslate="bglsApp.item.owner">Owner</span>
@@ -72,9 +65,6 @@
         <tbody infinite-scroll (scrolled)="loadNextPage()" [infiniteScrollDisabled]="!hasMorePage()" [infiniteScrollDistance]="0">
           @for (item of items; track trackId) {
             <tr data-cy="entityTable">
-              <td>
-                <a [routerLink]="['/item', item.id, 'view']">{{ item.id }}</a>
-              </td>
               <td>
                 {{ item.owner?.login }}
               </td>
