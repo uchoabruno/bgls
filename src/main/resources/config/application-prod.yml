@@ -40,6 +40,10 @@ spring:
     port: 25
     username:
     password:
+    properties:
+      auth: false
+      starttls:
+        enabled: false
   r2dbc:
     url: r2dbc:postgresql://172.18.0.2:5432/bgls
     username: bgls
