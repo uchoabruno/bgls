@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:15-alpine # Use uma imagem Alpine para ser mais leve
+    restart: always
+    environment:
+      - POSTGRES_USER=devuser
+      - POSTGRES_PASSWORD=devpassword
+      - POSTGRES_DB=dev_default_db
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - '5432:5432' # Mapeia a porta 5432 do host para o container
+    volumes:
+      - ./db/data:/var/lib/postgresql/data # Persiste os dados do DB
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  bgls-app: # Nome do seu serviço da aplicação
+    image: localhost:5000/bgls:latest # Puxa a imagem do seu registry local
+    restart: always
+    ports:
+      - '8080:8080' # Mapeia a porta da sua aplicação (ajuste se for diferente)
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bgls
+      SPRING_DATASOURCE_USERNAME: bgls
+      SPRING_DATASOURCE_PASSWORD:
+      SPRING_PROFILES_ACTIVE: prod
+      # Adicione outras variáveis de ambiente necessárias para sua aplicação aqui
+      SPRING_LIQUIBASE_URL: jdbc:postgresql://db:5432/bgls
+      SPRING_R2DBC_URL: r2dbc:postgresql://db:5432/bgls
+      SPRING_R2DBC_USERNAME: bgls
+      SPRING_R2DBC_PASSWORD:
+    depends_on:
+      db:
+        condition: service_healthy # Garante que o DB esteja saudável antes de iniciar a aplicação
+    # Adicione volumes para persistir dados ou logs da sua aplicação, se necessário
+    # volumes:
+    #   - ./app-data:/app/data

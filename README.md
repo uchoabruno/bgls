@@ -256,59 +256,15 @@ To configure CI for your project, run the ci-cd sub-generator (`jhipster ci-cd`)
 [DefinitelyTyped]: https://definitelytyped.org/
 [Angular CLI]: https://cli.angular.io/
 
-## Deploying BGLS to my NAS.
+## Deploying BGLS to my Home Server.
 
 ### In the development machine:
 
 - Make code changes.
-- Create docker image:
-
-```
-docker build --platform linux/arm64 -t bgls:latest .
-```
-
-- Tag image:
-
-```
-docker tag bgls:latest 192.168.68.110:5005/bgls:1.0.0
-```
-
-- Push image to registry on NAS:
-
-```
-docker push 192.168.68.110:5005/bgls:latest
-```
-
-### In the nas:
-
-- SSH into NAS:
-
-```
-ssh uchoabruno@192.168.68.110
-```
-
-- Stop container:
-
-```
-docker stop bgls-container
-```
-
-- Delete container:
-
-```
-docker rm bgls-container
-```
-
-- Pull image from registry:
-
-```
-docker pull localhost:5005/bgls:latest
-```
-
-- Run docker image:
-
-```
-docker run -d   --name bgls-container   -p 8080:8080   --restart=always   -e SPRING_PROFILES_ACTIVE=prod   -e SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:2665/bgls   -e SPRING_DATASOURCE_USERNAME=bgls   -e SPRING_DATASOURCE_PASSWORD=   -e SERVER_SERVLET_CONTEXT_PATH=/bgls localhost:5005/bgls:latest
-```
+- Push to remote.
+- GitHub Actions will take over, build the image and start the deploy.
+  - GitHub Actions pipeline is defined by .github/workflows/docker-image.yml
+  - It will call docker-compose.yml and deploy.sh
+  - If there are changes in docker-compose.yml and deploy.sh, they have to be redeployed to ~/bgls-app in the server
 
 The app can be accessed at https://uchoabruno.synology.me/
