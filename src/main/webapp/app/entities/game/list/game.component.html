@@ -65,8 +65,8 @@
               <td>{{ game.name }}</td>
               <td>
                 @if (game.cover) {
-                  <a (click)="openFile(game.cover, game.coverContentType)">
-                    <img [src]="'data:' + game.coverContentType + ';base64,' + game.cover" style="max-height: 30px" alt="game" />
+                  <a (click)="openFile(game.cover, game.coverContentType)" class="game-cover-container">
+                    <img [src]="'data:' + game.coverContentType + ';base64,' + game.cover" alt="Game Cover" class="game-cover-image" />
                   </a>
                 }
               </td>

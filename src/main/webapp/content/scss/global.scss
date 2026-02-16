@@ -237,3 +237,38 @@ angular-cli removes postcss-rtl processed inline css, processed rules must be ad
   }
 }
 /* jhipster-needle-scss-add-main JHipster will add new css style */
+
+.game-cover-container {
+  /* Ensure the container is positioned so z-index works correctly,
+     and to allow the image to "break out" during zoom if needed */
+  position: relative;
+  display: inline-block; /* Or block, depending on layout */
+  overflow: visible; /* Allow content to spill out during zoom */
+}
+
+.game-cover-image {
+  /* Initial size for the thumbnail */
+  width: 50px;
+  height: auto; /* or 50px for square */
+  object-fit: cover; /* if you want to crop */
+  transition: transform 0.3s ease-in-out;
+
+  /* Ensure the image doesn't get pixelated when scaled up (if it's a vector graphic) */
+  image-rendering: auto; /* Or optimize-contrast, crisp-edges */
+}
+
+.game-cover-container:hover .game-cover-image {
+  /* Apply the zoom effect */
+  transform: scale(5); /* Zooms to 300% of its original size */
+
+  /* Bring the zoomed image to the front so it's not obscured by other elements */
+  z-index: 10;
+  position: relative; /* z-index only works on positioned elements */
+
+  /* Optional: Add a subtle shadow for better visual separation */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.table-entities {
+  overflow: visible;
+}

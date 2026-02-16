@@ -74,16 +74,16 @@
               <td>
                 @if (item.game) {
                   <div>
-                    <a [routerLink]="['/game', item.game.id, 'view']">{{ item.game.name }}</a>
                     @if (item.game!.cover) {
-                      <a [routerLink]="['/game', item.game.id, 'view']">
+                      <a [routerLink]="['/game', item.game.id, 'view']" class="game-cover-container">
                         <img
                           [src]="'data:' + item.game!.coverContentType + ';base64,' + item.game!.cover"
-                          style="max-width: 5%"
+                          class="game-cover-image"
                           alt="game"
                         />
                       </a>
                     }
+                    <a [routerLink]="['/game', item.game.id, 'view']">{{ item.game.name }}</a>
                   </div>
                 }
               </td>
