@@ -9,20 +9,17 @@ import com.bgls.repository.rowmapper.ItemRowMapper;
 import com.bgls.repository.rowmapper.UserRowMapper;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
+import java.util.ArrayList;
 import java.util.List;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.support.SimpleR2dbcRepository;
-import org.springframework.data.relational.core.sql.Column;
-import org.springframework.data.relational.core.sql.Comparison;
-import org.springframework.data.relational.core.sql.Condition;
-import org.springframework.data.relational.core.sql.Conditions;
-import org.springframework.data.relational.core.sql.Expression;
-import org.springframework.data.relational.core.sql.Select;
+import org.springframework.data.relational.core.sql.*;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJoinCondition;
-import org.springframework.data.relational.core.sql.Table;
 import org.springframework.data.relational.repository.support.MappingRelationalEntityInformation;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
@@ -99,7 +96,23 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
             .on(Column.create("console_id", gameTable))
             .equals(Column.create("id", consoleTable));
         // we do not support Criteria here for now as of https://github.com/jhipster/generator-jhipster/issues/18269
-        String select = entityManager.createSelect(selectFrom, Item.class, pageable, whereClause);
+
+        Sort originalSort = pageable.getSort();
+        List<Sort.Order> newOrders = new ArrayList<>();
+
+        for (Sort.Order order : originalSort) {
+            switch (order.getProperty()) {
+                case "game.console.name" -> newOrders.add(new Sort.Order(order.getDirection(), "console.name"));
+                case "game.name" -> newOrders.add(new Sort.Order(order.getDirection(), "game.name"));
+                case "owner.login" -> newOrders.add(new Sort.Order(order.getDirection(), "owner.login"));
+                case "lendedTo.login" -> newOrders.add(new Sort.Order(order.getDirection(), "lendedTo.login"));
+                default -> newOrders.add(order);
+            }
+        }
+        Sort modifiedSort = Sort.by(newOrders);
+        Pageable modifiedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), modifiedSort);
+
+        String select = entityManager.createSelect(selectFrom, Item.class, modifiedPageable, whereClause);
         return db.sql(select).map(this::process);
     }
 
