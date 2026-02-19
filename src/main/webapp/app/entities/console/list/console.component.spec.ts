@@ -1,5 +1,5 @@
-import { ComponentFixture, TestBed, fakeAsync, inject, tick } from '@angular/core/testing';
-import { provideHttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { ComponentFixture, fakeAsync, inject, TestBed, tick } from '@angular/core/testing';
+import { HttpHeaders, HttpResponse, provideHttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
@@ -8,6 +8,9 @@ import { sampleWithRequiredData } from '../console.test-samples';
 import { ConsoleService } from '../service/console.service';
 
 import { ConsoleComponent } from './console.component';
+import { TranslateService } from '@ngx-translate/core';
+import { StateStorageService } from '../../../core/auth/state-storage.service';
+import { ApplicationConfigService } from 'app/core/config/application-config.service';
 import SpyInstance = jest.SpyInstance;
 
 describe('Console Management Component', () => {
@@ -15,6 +18,33 @@ describe('Console Management Component', () => {
   let fixture: ComponentFixture<ConsoleComponent>;
   let service: ConsoleService;
   let routerNavigateSpy: SpyInstance<Promise<boolean>>;
+
+  const mockTranslateService = {
+    instant(key: string) {
+      return key;
+    },
+    get(key: string) {
+      return of(key);
+    },
+    onLangChange: of({}),
+    use(lang: string) {
+      return of(lang);
+    },
+    currentLang: 'en',
+  };
+
+  const mockStateStorageService = {
+    getLocale() {
+      return 'en';
+    },
+    setLocale(locale: string) {},
+  };
+
+  const mockApplicationConfigService = {
+    getEndpointFor(api: string) {
+      return `/api/${api}`;
+    },
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -44,6 +74,11 @@ describe('Console Management Component', () => {
             },
           },
         },
+        // --- ADIÇÕES DE PROVIDERS START ---
+        { provide: TranslateService, useValue: mockTranslateService },
+        { provide: StateStorageService, useValue: mockStateStorageService },
+        { provide: ApplicationConfigService, useValue: mockApplicationConfigService },
+        // --- ADIÇÕES DE PROVIDERS END ---
       ],
     })
       .overrideTemplate(ConsoleComponent, '')

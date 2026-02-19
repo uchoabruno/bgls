@@ -1,9 +1,11 @@
-import { ComponentFixture, TestBed, fakeAsync, inject, tick } from '@angular/core/testing';
-import { provideHttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { ComponentFixture, fakeAsync, inject, TestBed, tick } from '@angular/core/testing';
+import { HttpHeaders, HttpResponse, provideHttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { of, Subject } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-
+import { TranslateService } from '@ngx-translate/core';
+import { ApplicationConfigService } from 'app/core/config/application-config.service';
+import { StateStorageService } from 'app/core/auth/state-storage.service'; // Caminho corrigido!
 import { sampleWithRequiredData } from '../game.test-samples';
 import { GameService } from '../service/game.service';
 
@@ -15,6 +17,33 @@ describe('Game Management Component', () => {
   let fixture: ComponentFixture<GameComponent>;
   let service: GameService;
   let routerNavigateSpy: SpyInstance<Promise<boolean>>;
+
+  const mockTranslateService = {
+    instant(key: string) {
+      return key;
+    },
+    get(key: string) {
+      return of(key);
+    },
+    onLangChange: of({}),
+    use(lang: string) {
+      return of(lang);
+    },
+    currentLang: 'en',
+  };
+
+  const mockStateStorageService = {
+    getLocale() {
+      return 'en';
+    },
+    setLocale(locale: string) {},
+  };
+
+  const mockApplicationConfigService = {
+    getEndpointFor(api: string) {
+      return `/api/${api}`;
+    },
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -46,6 +75,11 @@ describe('Game Management Component', () => {
             },
           },
         },
+        // --- ADIÇÕES DE PROVIDERS START ---
+        { provide: TranslateService, useValue: mockTranslateService },
+        { provide: StateStorageService, useValue: mockStateStorageService },
+        { provide: ApplicationConfigService, useValue: mockApplicationConfigService },
+        // --- ADIÇÕES DE PROVIDERS END ---
       ],
     })
       .overrideTemplate(GameComponent, '')
@@ -140,8 +174,6 @@ describe('Game Management Component', () => {
 
     beforeEach(() => {
       deleteModalMock = { componentInstance: {}, closed: new Subject() };
-      // NgbModal is not a singleton using TestBed.inject.
-      // ngbModal = TestBed.inject(NgbModal);
       ngbModal = (comp as any).modalService;
       jest.spyOn(ngbModal, 'open').mockReturnValue(deleteModalMock);
     });
