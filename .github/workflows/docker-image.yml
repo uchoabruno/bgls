@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,19 +7,12 @@ on:
     branches: ['master']
 
 jobs:
-  build:
+  build_and_push:
     runs-on: [self-hosted]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -27,12 +20,6 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-
-      - name: Build and analyze
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=BGLS -Dsonar.projectName='BGLS'
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -57,6 +44,44 @@ jobs:
             -t ${{ secrets.DOCKER_REGISTRY_HOST }}/bgls:latest \
             --push \
             .
+
+  sonar_analysis:
+    needs: build_and_push
+    runs-on: [self-hosted]
+    if: success()
+
+    steps:
+      - name: Checkout code # Pega o código novamente (necessário para o scanner do Sonar)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Essencial para o SonarQube analisar o histórico de commits
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: Run SonarQube analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=BGLS -Dsonar.projectName='BGLS'
+
+  deploy:
+    needs: build_and_push
+    runs-on: [self-hosted]
+    if: success() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+
+    steps:
       - name: Deploy application on Ubuntu Server
         run: |
           /home/bruno/bgls-app/deploy.sh

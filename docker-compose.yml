@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:15-alpine # Use uma imagem Alpine para ser mais leve
@@ -38,3 +40,24 @@ services:
     # Adicione volumes para persistir dados ou logs da sua aplicação, se necessário
     # volumes:
     #   - ./app-data:/app/data
+
+  sonar:
+    container_name: sonarqube
+    image: sonarqube:community
+    ports:
+      - '9000:9000'
+    environment:
+      - SONAR_FORCEAUTHENTICATION=true
+      - SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonar
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=*hskDFs1^H4!SdPi
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    depends_on:
+      - db
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
