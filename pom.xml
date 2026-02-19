@@ -24,8 +24,8 @@
         -->
         <maven.version>3.2.5</maven.version>
         <java.version>17</java.version>
-        <node.version>v18.19.0</node.version> <!-- Alinhado com Node.js 18 LTS -->
-        <npm.version>9.2.0</npm.version>     <!-- Alinhado com npm para Node.js 18.19.0 -->
+        <node.version>v18.19.0</node.version>
+        <npm.version>9.2.0</npm.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
@@ -74,6 +74,7 @@
         <profile.test/>
         <profile.tls/>
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
+        <sonar.junit.reportPaths>${project.build.directory}/test-results/jest/</sonar.junit.reportPaths>
         <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
         <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
         <springdoc-openapi-starter-webflux-api.version>2.5.0</springdoc-openapi-starter-webflux-api.version>
@@ -392,13 +393,41 @@
                     <artifactId>frontend-maven-plugin</artifactId>
                     <version>${frontend-maven-plugin.version}</version>
                     <configuration>
-                        <installDirectory>target</installDirectory> <!-- Padrão JHipster: instala Node/npm em target/node -->
+                        <installDirectory>target</installDirectory>
                         <nodeVersion>${node.version}</nodeVersion>
                         <npmVersion>${npm.version}</npmVersion>
-                        <downloadNode>true</downloadNode> <!-- Deixa o plugin baixar o Node (para builds locais) -->
-                        <downloadNpm>true</downloadNpm>   <!-- Deixa o plugin baixar o npm (para builds locais) -->
-                        <skip>${skip.frontend.build}</skip> <!-- ADICIONADO: Pula o plugin se a propriedade for 'true' -->
+                        <workingDirectory>${project.basedir}/src/main/webapp</workingDirectory>
+                        <skip>${skip.frontend.build}</skip>
                     </configuration>
+                    <executions>
+                        <execution>
+                            <id>install node and npm</id>
+                            <goals>
+                                <goal>install-node-and-npm</goal>
+                            </goals>
+                            <phase>generate-resources</phase>
+                        </execution>
+                        <execution>
+                            <id>npm install</id>
+                            <goals>
+                                <goal>npm</goal>
+                            </goals>
+                            <phase>generate-resources</phase>
+                            <configuration>
+                                <arguments>install</arguments>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>npm test</id>
+                            <goals>
+                                <goal>npm</goal>
+                            </goals>
+                            <phase>test</phase>
+                            <configuration>
+                                <arguments>test --coverage</arguments>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>com.google.cloud.tools</groupId>
