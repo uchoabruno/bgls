@@ -3,7 +3,6 @@ package com.bgls.repository;
 import com.bgls.domain.Console;
 import com.bgls.domain.Game;
 import com.bgls.domain.Item;
-import com.bgls.repository.rowmapper.ConsoleRowMapper;
 import com.bgls.repository.rowmapper.GameRowMapper;
 import com.bgls.repository.rowmapper.ItemRowMapper;
 import com.bgls.repository.rowmapper.UserRowMapper;
@@ -18,6 +17,7 @@ import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.support.SimpleR2dbcRepository;
+import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
 import org.springframework.data.relational.core.sql.*;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJoinCondition;
 import org.springframework.data.relational.repository.support.MappingRelationalEntityInformation;
@@ -32,6 +32,7 @@ import reactor.core.publisher.Mono;
 @SuppressWarnings("unused")
 class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> implements ItemRepositoryInternal {
 
+    public static final String CONSOLE = "console";
     private final DatabaseClient db;
     private final R2dbcEntityTemplate r2dbcEntityTemplate;
     private final EntityManager entityManager;
@@ -41,10 +42,13 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
     private final ItemRowMapper itemMapper;
 
     private static final Table entityTable = Table.aliased("item", EntityManager.ENTITY_ALIAS);
-    private static final Table ownerTable = Table.aliased("jhi_user", "owner");
-    private static final Table lendedToTable = Table.aliased("jhi_user", "lendedTo");
-    private static final Table gameTable = Table.aliased("game", "game");
-    private final Table consoleTable = Table.aliased("console", "console");
+    public static final String OWNER = "owner";
+    private static final Table ownerTable = Table.aliased("jhi_user", OWNER);
+    public static final String LENDED_TO = "lendedTo";
+    private static final Table lendedToTable = Table.aliased("jhi_user", LENDED_TO);
+    public static final String GAME = "game";
+    private static final Table gameTable = Table.aliased(GAME, GAME);
+    private final Table consoleTable = Table.aliased(CONSOLE, CONSOLE);
 
     public ItemRepositoryInternalImpl(
         R2dbcEntityTemplate template,
@@ -53,11 +57,12 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
         GameRowMapper gameMapper,
         ItemRowMapper itemMapper,
         R2dbcEntityOperations entityOperations,
-        R2dbcConverter converter,
-        ConsoleRowMapper consoleMapper
+        R2dbcConverter converter
     ) {
         super(
-            new MappingRelationalEntityInformation(converter.getMappingContext().getRequiredPersistentEntity(Item.class)),
+            new MappingRelationalEntityInformation<>(
+                (RelationalPersistentEntity<Item>) converter.getMappingContext().getRequiredPersistentEntity(Item.class)
+            ),
             entityOperations,
             converter
         );
@@ -76,10 +81,10 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
 
     RowsFetchSpec<Item> createQuery(Pageable pageable, Condition whereClause) {
         List<Expression> columns = ItemSqlHelper.getColumns(entityTable, EntityManager.ENTITY_ALIAS);
-        columns.addAll(UserSqlHelper.getColumns(ownerTable, "owner"));
-        columns.addAll(UserSqlHelper.getColumns(lendedToTable, "lendedTo"));
-        columns.addAll(GameSqlHelper.getColumns(gameTable, "game"));
-        columns.addAll(ConsoleSqlHelper.getColumns(consoleTable, "console"));
+        columns.addAll(UserSqlHelper.getColumns(ownerTable, OWNER));
+        columns.addAll(UserSqlHelper.getColumns(lendedToTable, LENDED_TO));
+        columns.addAll(GameSqlHelper.getColumns(gameTable, GAME));
+        columns.addAll(ConsoleSqlHelper.getColumns(consoleTable, CONSOLE));
         SelectFromAndJoinCondition selectFrom = Select.builder()
             .select(columns)
             .from(entityTable)
@@ -144,21 +149,16 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
 
     private Item process(Row row, RowMetadata metadata) {
         Item entity = itemMapper.apply(row, "e");
-        entity.setOwner(userMapper.apply(row, "owner"));
-        entity.setLendedTo(userMapper.apply(row, "lendedTo"));
+        entity.setOwner(userMapper.apply(row, OWNER));
+        entity.setLendedTo(userMapper.apply(row, LENDED_TO));
 
-        Game game = GameSqlHelper.extract(row, metadata, "game");
+        Game game = GameSqlHelper.extract(row, GAME);
         if (game != null) {
-            Console console = ConsoleSqlHelper.extract(row, metadata, "console");
+            Console console = ConsoleSqlHelper.extract(row, CONSOLE);
             game.setConsole(console);
         }
         entity.setGame(game);
 
         return entity;
-    }
-
-    @Override
-    public <S extends Item> Mono<S> save(S entity) {
-        return super.save(entity);
     }
 }

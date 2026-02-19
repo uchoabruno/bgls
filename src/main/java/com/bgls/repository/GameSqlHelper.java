@@ -2,7 +2,6 @@ package com.bgls.repository;
 
 import com.bgls.domain.Game;
 import io.r2dbc.spi.Row;
-import io.r2dbc.spi.RowMetadata;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.relational.core.sql.Column;
@@ -10,6 +9,8 @@ import org.springframework.data.relational.core.sql.Expression;
 import org.springframework.data.relational.core.sql.Table;
 
 public class GameSqlHelper {
+
+    private GameSqlHelper() {}
 
     public static List<Expression> getColumns(Table table, String columnPrefix) {
         List<Expression> columns = new ArrayList<>();
@@ -22,7 +23,7 @@ public class GameSqlHelper {
         return columns;
     }
 
-    public static Game extract(Row row, RowMetadata metadata, String columnPrefix) {
+    public static Game extract(Row row, String columnPrefix) {
         if (row.get(columnPrefix + "_id", Long.class) == null) {
             return null;
         }
