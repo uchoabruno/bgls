@@ -1,16 +1,15 @@
-import { Component, NgZone, inject, OnInit } from '@angular/core';
+import { Component, inject, NgZone, OnInit } from '@angular/core';
 import { ActivatedRoute, Data, ParamMap, Router, RouterModule } from '@angular/router';
 import { combineLatest, filter, Observable, Subscription, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import SharedModule from 'app/shared/shared.module';
-import { sortStateSignal, SortDirective, SortByDirective, type SortState, SortService } from 'app/shared/sort';
-import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe } from 'app/shared/date';
+import { SortByDirective, SortDirective, SortService, type SortState, sortStateSignal } from 'app/shared/sort';
 import { FormsModule } from '@angular/forms';
-import { SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/config/navigation.constants';
+import { DEFAULT_SORT_DATA, ITEM_DELETED_EVENT, SORT } from 'app/config/navigation.constants';
 import { DataUtils } from 'app/core/util/data-util.service';
 import { IConsole } from '../console.model';
-import { EntityArrayResponseType, ConsoleService } from '../service/console.service';
+import { ConsoleService, EntityArrayResponseType } from '../service/console.service';
 import { ConsoleDeleteDialogComponent } from '../delete/console-delete-dialog.component';
 import { AccountService } from '../../../core/auth/account.service';
 import { Authority } from '../../../config/authority.constants';
@@ -19,16 +18,7 @@ import { Authority } from '../../../config/authority.constants';
   standalone: true,
   selector: 'jhi-console',
   templateUrl: './console.component.html',
-  imports: [
-    RouterModule,
-    FormsModule,
-    SharedModule,
-    SortDirective,
-    SortByDirective,
-    DurationPipe,
-    FormatMediumDatetimePipe,
-    FormatMediumDatePipe,
-  ],
+  imports: [RouterModule, FormsModule, SharedModule, SortDirective, SortByDirective],
 })
 export class ConsoleComponent implements OnInit {
   subscription: Subscription | null = null;
@@ -51,7 +41,7 @@ export class ConsoleComponent implements OnInit {
   set isDisabled(value) {
     this._isDisabled = value;
   }
-  get isDisabled() {
+  get isDisabled(): boolean | undefined {
     return this._isDisabled;
   }
 

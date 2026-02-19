@@ -1,16 +1,15 @@
-import { Component, computed, NgZone, inject, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, computed, inject, NgZone, OnInit, signal, WritableSignal } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { ActivatedRoute, Data, ParamMap, Router, RouterModule } from '@angular/router';
 import { combineLatest, filter, Observable, Subscription, tap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import SharedModule from 'app/shared/shared.module';
-import { sortStateSignal, SortDirective, SortByDirective, type SortState, SortService } from 'app/shared/sort';
-import { DurationPipe, FormatMediumDatetimePipe, FormatMediumDatePipe } from 'app/shared/date';
+import { SortByDirective, SortDirective, SortService, type SortState, sortStateSignal } from 'app/shared/sort';
 import { FormsModule } from '@angular/forms';
 
 import { ITEMS_PER_PAGE } from 'app/config/pagination.constants';
-import { SORT, ITEM_DELETED_EVENT, DEFAULT_SORT_DATA } from 'app/config/navigation.constants';
+import { DEFAULT_SORT_DATA, ITEM_DELETED_EVENT, SORT } from 'app/config/navigation.constants';
 import { DataUtils } from 'app/core/util/data-util.service';
 import { ParseLinks } from 'app/core/util/parse-links.service';
 import { InfiniteScrollDirective } from 'ngx-infinite-scroll';
@@ -24,17 +23,7 @@ import { AccountService } from '../../../core/auth/account.service';
   standalone: true,
   selector: 'jhi-game',
   templateUrl: './game.component.html',
-  imports: [
-    RouterModule,
-    FormsModule,
-    SharedModule,
-    SortDirective,
-    SortByDirective,
-    DurationPipe,
-    FormatMediumDatetimePipe,
-    FormatMediumDatePipe,
-    InfiniteScrollDirective,
-  ],
+  imports: [RouterModule, FormsModule, SharedModule, SortDirective, SortByDirective, InfiniteScrollDirective],
 })
 export class GameComponent implements OnInit {
   subscription: Subscription | null = null;
@@ -64,7 +53,7 @@ export class GameComponent implements OnInit {
     this._isDisabled = value;
   }
 
-  get isDisabled() {
+  get isDisabled(): boolean | undefined {
     return this._isDisabled;
   }
 
@@ -128,8 +117,7 @@ export class GameComponent implements OnInit {
 
   protected onResponseSuccess(response: EntityArrayResponseType): void {
     this.fillComponentAttributesFromResponseHeader(response.headers);
-    const dataFromBody = this.fillComponentAttributesFromResponseBody(response.body);
-    this.games = dataFromBody;
+    this.games = this.fillComponentAttributesFromResponseBody(response.body);
   }
 
   protected fillComponentAttributesFromResponseBody(data: IGame[] | null): IGame[] {
