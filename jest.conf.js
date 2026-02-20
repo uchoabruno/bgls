@@ -14,17 +14,14 @@ module.exports = {
   roots: ['<rootDir>', `<rootDir>/${baseUrl}`],
   modulePaths: [`<rootDir>/${baseUrl}`],
   setupFiles: ['jest-date-mock'],
-  cacheDirectory: '<rootDir>/target/jest-cache', // Este também pode precisar de ajuste, se <rootDir> não for a raiz do Maven
-  coverageDirectory: '<rootDir>/target/test-results/', // Este também pode precisar de ajuste
+  cacheDirectory: '<rootDir>/target/jest-cache',
+  coverageDirectory: '<rootDir>/target/test-results/',
   moduleNameMapper: pathsToModuleNameMapper(paths, { prefix: `<rootDir>/${baseUrl}/` }),
   reporters: [
     'default',
-    // Opcional: Se você ainda precisa do relatório jest-junit para outros fins,
-    // ajuste o caminho para que ele também vá para o target raiz.
-    // ['jest-junit', { outputDirectory: '../../target/test-results/', outputName: 'TESTS-results-jest.xml' }],
+    ['jest-junit', { outputDirectory: '<rootDir>/target/test-results/', outputName: 'TESTS-results-jest.xml' }],
 
-    // Este é o principal que precisamos ajustar para o SonarQube
-    ['jest-sonar', { outputDirectory: '../../target/test-results/jest', outputName: 'TESTS-results-sonar.xml' }],
+    ['jest-sonar', { outputDirectory: '<rootDir>/target/test-results/jest', outputName: 'TESTS-results-sonar.xml' }],
   ],
   testMatch: ['<rootDir>/src/main/webapp/app/**/@(*.)@(spec.ts)'],
   testEnvironmentOptions: {
