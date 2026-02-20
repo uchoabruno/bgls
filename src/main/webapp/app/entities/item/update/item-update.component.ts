@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable, of, switchMap, take } from 'rxjs';
 import { finalize, map } from 'rxjs/operators';
 
 import SharedModule from 'app/shared/shared.module';
@@ -13,7 +13,8 @@ import { IGame } from 'app/entities/game/game.model';
 import { GameService } from 'app/entities/game/service/game.service';
 import { ItemService } from '../service/item.service';
 import { IItem } from '../item.model';
-import { ItemFormService, ItemFormGroup } from './item-form.service';
+import { ItemFormGroup, ItemFormService } from './item-form.service';
+import { AccountService } from '../../../core/auth/account.service';
 
 @Component({
   standalone: true,
@@ -28,6 +29,7 @@ export class ItemUpdateComponent implements OnInit {
   usersSharedCollection: IUser[] = [];
   gamesSharedCollection: IGame[] = [];
 
+  protected accountService = inject(AccountService);
   protected itemService = inject(ItemService);
   protected itemFormService = inject(ItemFormService);
   protected userService = inject(UserService);
@@ -38,18 +40,83 @@ export class ItemUpdateComponent implements OnInit {
   editForm: ItemFormGroup = this.itemFormService.createItemFormGroup();
 
   compareUser = (o1: IUser | null, o2: IUser | null): boolean => this.userService.compareUser(o1, o2);
-
   compareGame = (o1: IGame | null, o2: IGame | null): boolean => this.gameService.compareGame(o1, o2);
 
   ngOnInit(): void {
-    this.activatedRoute.data.subscribe(({ item }) => {
-      this.item = item;
-      if (item) {
-        this.updateForm(item);
-      }
+    forkJoin([
+      this.activatedRoute.data.pipe(
+        take(1),
+        map(data => data.item as IItem | null),
+      ),
+      this.activatedRoute.queryParamMap.pipe(
+        take(1),
+        map(params => params.get('gameId')),
+      ),
+      this.accountService.identity().pipe(take(1)),
+    ])
+      .pipe(
+        switchMap(([resolvedItem, gameIdFromQuery, currentUser]) => {
+          this.item = resolvedItem;
 
-      this.loadRelationshipsOptions();
-    });
+          if (!this.item && currentUser?.login) {
+            return this.userService.query({ 'login.equals': currentUser.login }).pipe(
+              map((res: HttpResponse<IUser[]>) => res.body?.[0] || null),
+              map(ownerUser => ({ resolvedItem, gameIdFromQuery, currentUser, ownerUser })),
+            );
+          } else {
+            return of({ resolvedItem, gameIdFromQuery, currentUser, ownerUser: null });
+          }
+        }),
+        switchMap(({ resolvedItem, gameIdFromQuery, currentUser, ownerUser }) => {
+          return this.loadRelationshipsOptionsObservables(resolvedItem, ownerUser ?? currentUser).pipe(
+            map(([usersCollection, gamesCollection]) => ({
+              resolvedItem,
+              gameIdFromQuery,
+              currentUser,
+              ownerUser,
+              usersCollection,
+              gamesCollection,
+            })),
+          );
+        }),
+        map(({ resolvedItem, gameIdFromQuery, currentUser, ownerUser, usersCollection, gamesCollection }) => {
+          this.usersSharedCollection = usersCollection;
+          this.gamesSharedCollection = gamesCollection;
+
+          if (resolvedItem) {
+            this.updateForm(resolvedItem);
+          } else {
+            if (ownerUser && !this.editForm.get('owner')?.value) {
+              this.editForm.get('owner')?.setValue(ownerUser);
+            }
+          }
+
+          if (gameIdFromQuery && (!this.item || !this.item.game)) {
+            const gameIdNum = +gameIdFromQuery;
+            const gameFromCollection = this.gamesSharedCollection.find(g => g.id === gameIdNum);
+
+            if (gameFromCollection) {
+              this.editForm.get('game')?.setValue(gameFromCollection);
+              this.editForm.get('game')?.disable();
+            } else {
+              this.gameService.find(gameIdNum).subscribe(
+                (res: HttpResponse<IGame>) => {
+                  if (res.body) {
+                    this.editForm.get('game')?.setValue(res.body);
+                    this.editForm.get('game')?.disable();
+                  }
+                },
+                error => console.error(`Erro ao buscar jogo com ID ${gameIdFromQuery}:`, error),
+              );
+            }
+          } else {
+            this.editForm.get('game')?.enable();
+          }
+        }),
+      )
+      .subscribe({
+        error: err => console.error('Erro no pipeline RxJS:', err),
+      });
   }
 
   previousState(): void {
@@ -95,19 +162,30 @@ export class ItemUpdateComponent implements OnInit {
       item.lendedTo,
     );
     this.gamesSharedCollection = this.gameService.addGameToCollectionIfMissing<IGame>(this.gamesSharedCollection, item.game);
+    this.editForm.get('game')?.enable();
   }
 
-  protected loadRelationshipsOptions(): void {
-    this.userService
-      .query()
-      .pipe(map((res: HttpResponse<IUser[]>) => res.body ?? []))
-      .pipe(map((users: IUser[]) => this.userService.addUserToCollectionIfMissing<IUser>(users, this.item?.owner, this.item?.lendedTo)))
-      .subscribe((users: IUser[]) => (this.usersSharedCollection = users));
+  protected loadRelationshipsOptionsObservables(
+    initialItem: IItem | null,
+    currentUserForOwner: any | null,
+  ): Observable<[IUser[], IGame[]]> {
+    const userQuery$ = this.userService.query().pipe(
+      map((res: HttpResponse<IUser[]>) => res.body ?? []),
+      map((users: IUser[]) =>
+        this.userService.addUserToCollectionIfMissing<IUser>(
+          users,
+          initialItem?.owner,
+          initialItem?.lendedTo,
+          currentUserForOwner ? (currentUserForOwner as IUser) : undefined,
+        ),
+      ),
+    );
 
-    this.gameService
-      .query()
-      .pipe(map((res: HttpResponse<IGame[]>) => res.body ?? []))
-      .pipe(map((games: IGame[]) => this.gameService.addGameToCollectionIfMissing<IGame>(games, this.item?.game)))
-      .subscribe((games: IGame[]) => (this.gamesSharedCollection = games));
+    const gameQuery$ = this.gameService.query().pipe(
+      map((res: HttpResponse<IGame[]>) => res.body ?? []),
+      map((games: IGame[]) => this.gameService.addGameToCollectionIfMissing<IGame>(games, initialItem?.game)),
+    );
+
+    return forkJoin([userQuery$, gameQuery$]);
   }
 }
