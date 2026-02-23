@@ -60,7 +60,7 @@ export class ItemUpdateComponent implements OnInit {
 
           if (!this.item && currentUser?.login) {
             return this.userService.query({ 'login.equals': currentUser.login }).pipe(
-              map((res: HttpResponse<IUser[]>) => res.body?.[0] || null),
+              map((res: HttpResponse<IUser[]>) => res.body?.[0] ?? null),
               map(ownerUser => ({ resolvedItem, gameIdFromQuery, currentUser, ownerUser })),
             );
           } else {
