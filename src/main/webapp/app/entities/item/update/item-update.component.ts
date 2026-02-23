@@ -92,7 +92,7 @@ export class ItemUpdateComponent implements OnInit {
             }
           }
 
-          if (gameIdFromQuery && (!this.item || !this.item?.game)) {
+          if (gameIdFromQuery && this.item?.game == null) {
             const gameIdNum = +gameIdFromQuery;
             const gameFromCollection = this.gamesSharedCollection.find(g => g.id === gameIdNum);
 
