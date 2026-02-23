@@ -67,6 +67,7 @@ export class ItemUpdateComponent implements OnInit {
             return of({ resolvedItem, gameIdFromQuery, currentUser, ownerUser: null });
           }
         }),
+        // eslint-disable-next-line arrow-body-style
         switchMap(({ resolvedItem, gameIdFromQuery, currentUser, ownerUser }) => {
           return this.loadRelationshipsOptionsObservables(resolvedItem, ownerUser ?? currentUser).pipe(
             map(([usersCollection, gamesCollection]) => ({
@@ -91,7 +92,7 @@ export class ItemUpdateComponent implements OnInit {
             }
           }
 
-          if (gameIdFromQuery && (!this.item || !this.item.game)) {
+          if (gameIdFromQuery && (!this.item || !this.item?.game)) {
             const gameIdNum = +gameIdFromQuery;
             const gameFromCollection = this.gamesSharedCollection.find(g => g.id === gameIdNum);
 
@@ -165,10 +166,7 @@ export class ItemUpdateComponent implements OnInit {
     this.editForm.get('game')?.enable();
   }
 
-  protected loadRelationshipsOptionsObservables(
-    initialItem: IItem | null,
-    currentUserForOwner: any | null,
-  ): Observable<[IUser[], IGame[]]> {
+  protected loadRelationshipsOptionsObservables(initialItem: IItem | null, currentUserForOwner: any): Observable<[IUser[], IGame[]]> {
     const userQuery$ = this.userService.query().pipe(
       map((res: HttpResponse<IUser[]>) => res.body ?? []),
       map((users: IUser[]) =>
