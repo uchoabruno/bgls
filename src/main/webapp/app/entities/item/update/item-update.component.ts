@@ -67,7 +67,6 @@ export class ItemUpdateComponent implements OnInit {
             return of({ resolvedItem, gameIdFromQuery, currentUser, ownerUser: null });
           }
         }),
-        // eslint-disable-next-line arrow-body-style
         switchMap(({ resolvedItem, gameIdFromQuery, currentUser, ownerUser }) => {
           return this.loadRelationshipsOptionsObservables(resolvedItem, ownerUser ?? currentUser).pipe(
             map(([usersCollection, gamesCollection]) => ({
@@ -87,8 +86,10 @@ export class ItemUpdateComponent implements OnInit {
           if (resolvedItem) {
             this.updateForm(resolvedItem);
           } else {
-            if (ownerUser && !this.editForm.get('owner')?.value) {
-              this.editForm.get('owner')?.setValue(ownerUser);
+            const currentUserFromCollection = this.usersSharedCollection.find(user => user.login === currentUser?.login);
+
+            if (currentUserFromCollection && !this.editForm.get('owner')?.value) {
+              this.editForm.get('owner')?.setValue(currentUserFromCollection);
             }
           }
 
@@ -107,7 +108,7 @@ export class ItemUpdateComponent implements OnInit {
                     this.editForm.get('game')?.disable();
                   }
                 },
-                error => console.error(`Erro ao buscar jogo com ID ${gameIdFromQuery}:`, error),
+                error => console.error(`Error searching for game with ID ${gameIdFromQuery}:`, error),
               );
             }
           } else {
@@ -116,7 +117,7 @@ export class ItemUpdateComponent implements OnInit {
         }),
       )
       .subscribe({
-        error: err => console.error('Erro no pipeline RxJS:', err),
+        error: err => console.error('Error in pipeline RxJS:', err),
       });
   }
 
