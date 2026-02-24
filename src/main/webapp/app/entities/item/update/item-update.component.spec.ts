@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient, HttpResponse } from '@angular/common/http';
+import { HttpResponse, provideHttpClient } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
-import { of, Subject, from } from 'rxjs';
+import { ActivatedRoute, convertToParamMap } from '@angular/router'; // <-- Adicione convertToParamMap aqui
+import { from, of, Subject } from 'rxjs';
 
 import { IUser } from 'app/entities/user/user.model';
 import { UserService } from 'app/entities/user/service/user.service';
@@ -13,19 +13,22 @@ import { ItemService } from '../service/item.service';
 import { ItemFormService } from './item-form.service';
 
 import { ItemUpdateComponent } from './item-update.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { AccountService } from '../../../core/auth/account.service';
+import { Account } from '../../../core/auth/account.model';
 
 describe('Item Management Update Component', () => {
   let comp: ItemUpdateComponent;
   let fixture: ComponentFixture<ItemUpdateComponent>;
+  let accountService: AccountService;
   let activatedRoute: ActivatedRoute;
   let itemFormService: ItemFormService;
   let itemService: ItemService;
   let userService: UserService;
   let gameService: GameService;
-
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ItemUpdateComponent],
+      imports: [ItemUpdateComponent, TranslateModule.forRoot()],
       providers: [
         provideHttpClient(),
         FormBuilder,
@@ -33,14 +36,16 @@ describe('Item Management Update Component', () => {
           provide: ActivatedRoute,
           useValue: {
             params: from([{}]),
+            data: of({}),
+            queryParamMap: of(convertToParamMap({})),
           },
         },
       ],
     })
       .overrideTemplate(ItemUpdateComponent, '')
       .compileComponents();
-
     fixture = TestBed.createComponent(ItemUpdateComponent);
+    accountService = TestBed.inject(AccountService);
     activatedRoute = TestBed.inject(ActivatedRoute);
     itemFormService = TestBed.inject(ItemFormService);
     itemService = TestBed.inject(ItemService);
@@ -51,28 +56,53 @@ describe('Item Management Update Component', () => {
   });
 
   describe('ngOnInit', () => {
-    it('Should call User query and add missing value', () => {
-      const item: IItem = { id: 456 };
-      const owner: IUser = { id: 8109 };
-      item.owner = owner;
-      const lendedTo: IUser = { id: 32594 };
-      item.lendedTo = lendedTo;
+    it('Should call User query and add missing value (for new item)', async () => {
+      const mockCurrentUser: Account = {
+        login: 'testuser',
+        activated: true,
+        authorities: ['ROLE_USER'],
+        email: 'test@example.com',
+        firstName: 'Test',
+        langKey: 'en',
+        lastName: 'User',
+        imageUrl: null,
+      };
+      const mockUserFromQuery: IUser = { id: 2, login: 'queriedUser' };
+      const mockGame: IGame = { id: 10, name: 'Test Game' };
 
-      const userCollection: IUser[] = [{ id: 5695 }];
-      jest.spyOn(userService, 'query').mockReturnValue(of(new HttpResponse({ body: userCollection })));
-      const additionalUsers = [owner, lendedTo];
-      const expectedCollection: IUser[] = [...additionalUsers, ...userCollection];
-      jest.spyOn(userService, 'addUserToCollectionIfMissing').mockReturnValue(expectedCollection);
+      jest.spyOn(accountService, 'identity').mockReturnValue(of(mockCurrentUser));
+      jest.spyOn(userService, 'query').mockReturnValue(of(new HttpResponse({ body: [mockUserFromQuery] })));
+      jest.spyOn(gameService, 'query').mockReturnValue(of(new HttpResponse({ body: [mockGame] })));
+      jest.spyOn(userService, 'addUserToCollectionIfMissing').mockImplementation((users, owner, lendedTo, currentUserOwner) => {
+        const collection = [...users];
+        if (currentUserOwner && !collection.some(u => u.id === currentUserOwner.id)) {
+          collection.push(currentUserOwner);
+        }
+        return collection;
+      });
 
-      activatedRoute.data = of({ item });
+      jest.spyOn(gameService, 'addGameToCollectionIfMissing').mockImplementation((games, gameToAdd) => {
+        const collection = [...games];
+        if (gameToAdd && !collection.some(g => g.id === gameToAdd.id)) {
+          collection.push(gameToAdd);
+        }
+        return collection;
+      });
+
+      const expectedCollectionAfterAdd = [mockUserFromQuery];
+
+      activatedRoute.data = of({ item: null });
+
       comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
-      expect(userService.query).toHaveBeenCalled();
-      expect(userService.addUserToCollectionIfMissing).toHaveBeenCalledWith(
-        userCollection,
-        ...additionalUsers.map(expect.objectContaining),
-      );
-      expect(comp.usersSharedCollection).toEqual(expectedCollection);
+      expect(accountService.identity).toHaveBeenCalled();
+      expect(userService.query).toHaveBeenCalledWith({ 'login.equals': mockCurrentUser.login });
+      expect(gameService.query).toHaveBeenCalled();
+      expect(userService.addUserToCollectionIfMissing).toHaveBeenCalledWith([mockUserFromQuery], undefined, undefined, mockUserFromQuery);
+      expect(comp.usersSharedCollection).toEqual(expectedCollectionAfterAdd);
+      expect(comp.gamesSharedCollection).toEqual([mockGame]);
     });
 
     it('Should call Game query and add missing value', () => {
