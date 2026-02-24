@@ -184,6 +184,183 @@ describe('Item Management Update Component', () => {
       expect(comp.gamesSharedCollection).toContain(game);
       expect(comp.item).toEqual(item);
     });
+
+    it('Null Item and existing game from query', async () => {
+      const mockUserFromQuery: IUser = { id: 2, login: 'testuser' };
+      const mockGameFromCollection: IGame = { id: 10, name: 'Test Game' };
+      const gameIdFromQuery = '10';
+
+      TestBed.resetTestingModule();
+      await TestBed.configureTestingModule({
+        imports: [ItemUpdateComponent, TranslateModule.forRoot()],
+        providers: [
+          provideHttpClient(),
+          FormBuilder,
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              params: from([{}]),
+              data: of({ item: null }),
+              queryParamMap: of(convertToParamMap({ gameId: gameIdFromQuery })),
+            },
+          },
+        ],
+      })
+        .overrideTemplate(ItemUpdateComponent, '')
+        .compileComponents();
+
+      fixture = TestBed.createComponent(ItemUpdateComponent);
+      comp = fixture.componentInstance;
+
+      accountService = TestBed.inject(AccountService);
+      activatedRoute = TestBed.inject(ActivatedRoute);
+      itemFormService = TestBed.inject(ItemFormService);
+      itemService = TestBed.inject(ItemService);
+      userService = TestBed.inject(UserService);
+      gameService = TestBed.inject(GameService);
+
+      jest.spyOn(accountService, 'identity').mockReturnValue(of(mockDefaultAccount));
+      jest.spyOn(userService, 'query').mockReturnValue(of(new HttpResponse({ body: [mockUserFromQuery] })));
+      jest.spyOn(gameService, 'query').mockReturnValue(of(new HttpResponse({ body: [mockGameFromCollection] })));
+      jest.spyOn(userService, 'addUserToCollectionIfMissing').mockImplementation((users, owner, lendedTo, currentUserOwner) => {
+        const collection = [...users];
+        if (currentUserOwner && !collection.some(u => u.id === currentUserOwner.id)) {
+          collection.push(currentUserOwner);
+        }
+        return collection;
+      });
+      jest.spyOn(gameService, 'addGameToCollectionIfMissing').mockImplementation((games, gameToAdd) => {
+        const collection = [...games];
+        if (gameToAdd && !collection.some(g => g.id === gameToAdd.id)) {
+          collection.push(gameToAdd);
+        }
+        return collection;
+      });
+
+      const mockGameControl = {
+        setValue: jest.fn(),
+        disable: jest.fn(),
+        enable: jest.fn(),
+        value: null,
+      };
+
+      const mockOwnerControl = {
+        setValue: jest.fn(),
+        value: null,
+      };
+
+      const originalGet = comp.editForm.get.bind(comp.editForm);
+      jest.spyOn(comp.editForm, 'get').mockImplementation((controlName: string | (string | number)[]) => {
+        if (controlName === 'game') {
+          return mockGameControl as any;
+        }
+        if (controlName === 'owner') {
+          return mockOwnerControl as any;
+        }
+        return originalGet(controlName);
+      });
+
+      comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(accountService.identity).toHaveBeenCalled();
+      expect(userService.query).toHaveBeenCalledWith({ 'login.equals': mockDefaultAccount.login });
+      expect(gameService.query).toHaveBeenCalled();
+      expect(comp.item).toBeNull();
+      expect(comp.gamesSharedCollection).toContain(mockGameFromCollection);
+      expect(mockGameControl.setValue).toHaveBeenCalledWith(mockGameFromCollection);
+      expect(mockGameControl.disable).toHaveBeenCalled();
+    });
+
+    it('Null Item and game from query not in collection - should call gameService.find', async () => {
+      const mockUserFromQuery: IUser = { id: 2, login: 'testuser' };
+      const mockGameFromCollection: IGame = { id: 5, name: 'Different Game' };
+      const mockGameFromFind: IGame = { id: 15, name: 'Found Game' };
+      const gameIdFromQuery = '15';
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [ItemUpdateComponent, TranslateModule.forRoot()],
+        providers: [
+          provideHttpClient(),
+          FormBuilder,
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              params: from([{}]),
+              data: of({ item: null }),
+              queryParamMap: of(convertToParamMap({ gameId: gameIdFromQuery })),
+            },
+          },
+        ],
+      })
+        .overrideTemplate(ItemUpdateComponent, '')
+        .compileComponents();
+
+      fixture = TestBed.createComponent(ItemUpdateComponent);
+      comp = fixture.componentInstance;
+
+      accountService = TestBed.inject(AccountService);
+      activatedRoute = TestBed.inject(ActivatedRoute);
+      itemFormService = TestBed.inject(ItemFormService);
+      itemService = TestBed.inject(ItemService);
+      userService = TestBed.inject(UserService);
+      gameService = TestBed.inject(GameService);
+
+      jest.spyOn(accountService, 'identity').mockReturnValue(of(mockDefaultAccount));
+      jest.spyOn(userService, 'query').mockReturnValue(of(new HttpResponse({ body: [mockUserFromQuery] })));
+      jest.spyOn(gameService, 'query').mockReturnValue(of(new HttpResponse({ body: [mockGameFromCollection] })));
+      jest.spyOn(gameService, 'find').mockReturnValue(of(new HttpResponse({ body: mockGameFromFind })));
+      jest.spyOn(userService, 'addUserToCollectionIfMissing').mockImplementation((users, owner, lendedTo, currentUserOwner) => {
+        const collection = [...users];
+        if (currentUserOwner && !collection.some(u => u.id === currentUserOwner.id)) {
+          collection.push(currentUserOwner);
+        }
+        return collection;
+      });
+      jest.spyOn(gameService, 'addGameToCollectionIfMissing').mockImplementation((games, gameToAdd) => {
+        const collection = [...games];
+        if (gameToAdd && !collection.some(g => g.id === gameToAdd.id)) {
+          collection.push(gameToAdd);
+        }
+        return collection;
+      });
+
+      // Mock do FormControl
+      const mockGameControl = {
+        setValue: jest.fn(),
+        disable: jest.fn(),
+        enable: jest.fn(),
+        value: null,
+      };
+
+      const mockOwnerControl = {
+        setValue: jest.fn(),
+        value: null,
+      };
+
+      const originalGet = comp.editForm.get.bind(comp.editForm);
+      jest.spyOn(comp.editForm, 'get').mockImplementation((controlName: string | (string | number)[]) => {
+        if (controlName === 'game') {
+          return mockGameControl as any;
+        }
+        if (controlName === 'owner') {
+          return mockOwnerControl as any;
+        }
+        return originalGet(controlName);
+      });
+
+      comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      expect(gameService.find).toHaveBeenCalledWith(15);
+      expect(mockGameControl.setValue).toHaveBeenCalledWith(mockGameFromFind);
+      expect(mockGameControl.disable).toHaveBeenCalled();
+    });
   });
 
   describe('save', () => {
