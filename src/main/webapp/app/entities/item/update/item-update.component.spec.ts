@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse, provideHttpClient } from '@angular/common/http';
 import { FormBuilder } from '@angular/forms';
-import { ActivatedRoute, convertToParamMap } from '@angular/router'; // <-- Adicione convertToParamMap aqui
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { from, of, Subject } from 'rxjs';
 
 import { IUser } from 'app/entities/user/user.model';
@@ -26,6 +26,20 @@ describe('Item Management Update Component', () => {
   let itemService: ItemService;
   let userService: UserService;
   let gameService: GameService;
+
+  const mockDefaultAccount: Account = {
+    login: 'defaultUser',
+    activated: true,
+    authorities: ['ROLE_USER'],
+    email: 'default@example.com',
+    firstName: 'Default',
+    langKey: 'en',
+    lastName: 'User',
+    imageUrl: null,
+  };
+  const mockDefaultUserCollection: IUser[] = [{ id: 100, login: 'defaultQueryUser' }];
+  const mockDefaultGameCollection: IGame[] = [{ id: 200, name: 'Default Query Game' }];
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ItemUpdateComponent, TranslateModule.forRoot()],
@@ -53,6 +67,31 @@ describe('Item Management Update Component', () => {
     gameService = TestBed.inject(GameService);
 
     comp = fixture.componentInstance;
+
+    jest.spyOn(accountService, 'identity').mockReturnValue(of(mockDefaultAccount));
+    jest.spyOn(userService, 'query').mockReturnValue(of(new HttpResponse({ body: mockDefaultUserCollection })));
+    jest.spyOn(gameService, 'query').mockReturnValue(of(new HttpResponse({ body: mockDefaultGameCollection })));
+    jest.spyOn(userService, 'addUserToCollectionIfMissing').mockImplementation((users, owner, lendedTo, currentUserOwner) => {
+      const collection = [...users];
+      if (owner && !collection.some(u => u.id === owner.id)) {
+        collection.push(owner);
+      }
+      if (lendedTo && !collection.some(u => u.id === lendedTo.id)) {
+        collection.push(lendedTo);
+      }
+      if (currentUserOwner && !collection.some(u => u.id === currentUserOwner.id)) {
+        collection.push(currentUserOwner);
+      }
+      return collection;
+    });
+    jest.spyOn(gameService, 'addGameToCollectionIfMissing').mockImplementation((games, gameToAdd) => {
+      const collection = [...games];
+      if (gameToAdd && !collection.some(g => g.id === gameToAdd.id)) {
+        collection.push(gameToAdd);
+      }
+      return collection;
+    });
+    jest.spyOn(gameService, 'find').mockReturnValue(of(new HttpResponse({ body: mockDefaultGameCollection[0] })));
   });
 
   describe('ngOnInit', () => {
@@ -105,7 +144,7 @@ describe('Item Management Update Component', () => {
       expect(comp.gamesSharedCollection).toEqual([mockGame]);
     });
 
-    it('Should call Game query and add missing value', () => {
+    it('Should call Game query and add missing value', async () => {
       const item: IItem = { id: 456 };
       const game: IGame = { id: 24051 };
       item.game = game;
@@ -118,16 +157,15 @@ describe('Item Management Update Component', () => {
 
       activatedRoute.data = of({ item });
       comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       expect(gameService.query).toHaveBeenCalled();
-      expect(gameService.addGameToCollectionIfMissing).toHaveBeenCalledWith(
-        gameCollection,
-        ...additionalGames.map(expect.objectContaining),
-      );
+      expect(gameService.addGameToCollectionIfMissing).toHaveBeenCalledWith(gameCollection, game);
       expect(comp.gamesSharedCollection).toEqual(expectedCollection);
     });
 
-    it('Should update editForm', () => {
+    it('Should update editForm', async () => {
       const item: IItem = { id: 456 };
       const owner: IUser = { id: 4638 };
       item.owner = owner;
@@ -138,6 +176,8 @@ describe('Item Management Update Component', () => {
 
       activatedRoute.data = of({ item });
       comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
       expect(comp.usersSharedCollection).toContain(owner);
       expect(comp.usersSharedCollection).toContain(lendedTo);
@@ -147,8 +187,7 @@ describe('Item Management Update Component', () => {
   });
 
   describe('save', () => {
-    it('Should call update service on save for existing entity', () => {
-      // GIVEN
+    it('Should call update service on save for existing entity', async () => {
       const saveSubject = new Subject<HttpResponse<IItem>>();
       const item = { id: 123 };
       jest.spyOn(itemFormService, 'getItem').mockReturnValue(item);
@@ -156,22 +195,23 @@ describe('Item Management Update Component', () => {
       jest.spyOn(comp, 'previousState');
       activatedRoute.data = of({ item });
       comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
-      // WHEN
       comp.save();
       expect(comp.isSaving).toEqual(true);
       saveSubject.next(new HttpResponse({ body: item }));
       saveSubject.complete();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
-      // THEN
       expect(itemFormService.getItem).toHaveBeenCalled();
       expect(comp.previousState).toHaveBeenCalled();
       expect(itemService.update).toHaveBeenCalledWith(expect.objectContaining(item));
       expect(comp.isSaving).toEqual(false);
     });
 
-    it('Should call create service on save for new entity', () => {
-      // GIVEN
+    it('Should call create service on save for new entity', async () => {
       const saveSubject = new Subject<HttpResponse<IItem>>();
       const item = { id: 123 };
       jest.spyOn(itemFormService, 'getItem').mockReturnValue({ id: null });
@@ -179,35 +219,38 @@ describe('Item Management Update Component', () => {
       jest.spyOn(comp, 'previousState');
       activatedRoute.data = of({ item: null });
       comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
-      // WHEN
       comp.save();
       expect(comp.isSaving).toEqual(true);
       saveSubject.next(new HttpResponse({ body: item }));
       saveSubject.complete();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
-      // THEN
       expect(itemFormService.getItem).toHaveBeenCalled();
       expect(itemService.create).toHaveBeenCalled();
       expect(comp.isSaving).toEqual(false);
       expect(comp.previousState).toHaveBeenCalled();
     });
 
-    it('Should set isSaving to false on error', () => {
-      // GIVEN
+    it('Should set isSaving to false on error', async () => {
       const saveSubject = new Subject<HttpResponse<IItem>>();
       const item = { id: 123 };
       jest.spyOn(itemService, 'update').mockReturnValue(saveSubject);
       jest.spyOn(comp, 'previousState');
       activatedRoute.data = of({ item });
       comp.ngOnInit();
+      fixture.detectChanges();
+      await fixture.whenStable();
 
-      // WHEN
       comp.save();
       expect(comp.isSaving).toEqual(true);
       saveSubject.error('This is an error!');
+      fixture.detectChanges();
+      await fixture.whenStable();
 
-      // THEN
       expect(itemService.update).toHaveBeenCalled();
       expect(comp.isSaving).toEqual(false);
       expect(comp.previousState).not.toHaveBeenCalled();
