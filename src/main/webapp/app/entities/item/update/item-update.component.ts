@@ -67,8 +67,8 @@ export class ItemUpdateComponent implements OnInit {
             return of({ resolvedItem, gameIdFromQuery, currentUser, ownerUser: null });
           }
         }),
-        switchMap(({ resolvedItem, gameIdFromQuery, currentUser, ownerUser }) => {
-          return this.loadRelationshipsOptionsObservables(resolvedItem, ownerUser ?? currentUser).pipe(
+        switchMap(({ resolvedItem, gameIdFromQuery, currentUser, ownerUser }) =>
+          this.loadRelationshipsOptionsObservables(resolvedItem, ownerUser ?? currentUser).pipe(
             map(([usersCollection, gamesCollection]) => ({
               resolvedItem,
               gameIdFromQuery,
@@ -77,8 +77,8 @@ export class ItemUpdateComponent implements OnInit {
               usersCollection,
               gamesCollection,
             })),
-          );
-        }),
+          ),
+        ),
         map(({ resolvedItem, gameIdFromQuery, currentUser, ownerUser, usersCollection, gamesCollection }) => {
           this.usersSharedCollection = usersCollection;
           this.gamesSharedCollection = gamesCollection;

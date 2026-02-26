@@ -87,7 +87,7 @@ export class ItemComponent implements OnInit {
 
     this.userService.query({ size: 1000 }).subscribe({
       next: res => {
-        this.owners = res.body || [];
+        this.owners = res.body ?? [];
       },
       error: () => {
         this.owners = [];
@@ -96,7 +96,7 @@ export class ItemComponent implements OnInit {
 
     this.consoleService.query({ size: 1000 }).subscribe({
       next: res => {
-        this.consoles = res.body || [];
+        this.consoles = res.body ?? [];
         this.isLoadingOptions = false;
       },
       error: () => {
@@ -266,8 +266,6 @@ export class ItemComponent implements OnInit {
     } else if (this.isFirstFetch()) {
       Object.assign(queryObject, { sort: this.sortService.buildSortParam(this.sortState()) });
     }
-
-    console.log('Query object being sent:', queryObject); // Para debug
 
     return this.itemService.query(queryObject).pipe(tap(() => (this.isLoading = false)));
   }

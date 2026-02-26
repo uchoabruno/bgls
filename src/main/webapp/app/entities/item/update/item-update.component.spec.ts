@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpResponse, provideHttpClient } from '@angular/common/http';
-import { FormBuilder } from '@angular/forms';
+import { AbstractControl, FormBuilder } from '@angular/forms';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { from, of, Subject } from 'rxjs';
 
@@ -237,25 +237,25 @@ describe('Item Management Update Component', () => {
         return collection;
       });
 
-      const mockGameControl = {
+      const mockGameControl: AbstractControl = {
         setValue: jest.fn(),
         disable: jest.fn(),
         enable: jest.fn(),
         value: null,
-      };
+      } as any;
 
-      const mockOwnerControl = {
+      const mockOwnerControl: AbstractControl = {
         setValue: jest.fn(),
         value: null,
-      };
+      } as any;
 
       const originalGet = comp.editForm.get.bind(comp.editForm);
-      jest.spyOn(comp.editForm, 'get').mockImplementation((controlName: string | (string | number)[]) => {
+      jest.spyOn(comp.editForm, 'get').mockImplementation((controlName: string | (string | number)[]): AbstractControl | null => {
         if (controlName === 'game') {
-          return mockGameControl as any;
+          return mockGameControl;
         }
         if (controlName === 'owner') {
-          return mockOwnerControl as any;
+          return mockOwnerControl;
         }
         return originalGet(controlName);
       });
@@ -327,26 +327,25 @@ describe('Item Management Update Component', () => {
         return collection;
       });
 
-      // Mock do FormControl
-      const mockGameControl = {
+      const mockGameControl: AbstractControl = {
         setValue: jest.fn(),
         disable: jest.fn(),
         enable: jest.fn(),
         value: null,
-      };
+      } as any;
 
-      const mockOwnerControl = {
+      const mockOwnerControl: AbstractControl = {
         setValue: jest.fn(),
         value: null,
-      };
+      } as any;
 
       const originalGet = comp.editForm.get.bind(comp.editForm);
-      jest.spyOn(comp.editForm, 'get').mockImplementation((controlName: string | (string | number)[]) => {
+      jest.spyOn(comp.editForm, 'get').mockImplementation((controlName: string | (string | number)[]): AbstractControl | null => {
         if (controlName === 'game') {
-          return mockGameControl as any;
+          return mockGameControl;
         }
         if (controlName === 'owner') {
-          return mockOwnerControl as any;
+          return mockOwnerControl;
         }
         return originalGet(controlName);
       });
