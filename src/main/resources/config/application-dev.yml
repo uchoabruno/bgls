@@ -16,6 +16,7 @@
 logging:
   level:
     ROOT: DEBUG
+    javax.management.remote.rmi: INFO
     tech.jhipster: DEBUG
     org.hibernate.SQL: DEBUG
     com.bgls: DEBUG
