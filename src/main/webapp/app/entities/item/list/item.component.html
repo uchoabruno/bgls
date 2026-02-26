@@ -52,14 +52,18 @@
             <div class="col-md-3">
               <div class="mb-3">
                 <label for="lendedToFilter" class="form-label" jhiTranslate="bglsApp.item.lendedTo">Lended To</label>
-                <input
-                  type="text"
-                  class="form-control"
+                <select
+                  class="form-select"
                   id="lendedToFilter"
                   name="lendedToFilter"
-                  [(ngModel)]="filters.lendedTo"
-                  placeholder="Filter by lended to..."
-                />
+                  [(ngModel)]="filters.lendedToId"
+                  [disabled]="isLoadingOptions"
+                >
+                  <option value="">All users</option>
+                  @for (lendedTo of lendedTos; track lendedTo.id) {
+                    <option [value]="lendedTo.id">{{ lendedTo.login }}</option>
+                  }
+                </select>
               </div>
             </div>
 

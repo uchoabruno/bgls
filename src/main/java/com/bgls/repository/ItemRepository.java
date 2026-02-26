@@ -52,7 +52,6 @@ public interface ItemRepository extends ReactiveCrudRepository<Item, Long>, Item
         "LEFT JOIN console c ON g.console_id = c.id " +
         "WHERE (:ownerId IS NULL OR i.owner_id = :ownerId) " +
         "AND (:lendedToId IS NULL OR i.lended_to_id = :lendedToId) " +
-        "AND (:lendedToLogin IS NULL OR LOWER(lended_to.login) LIKE LOWER(CONCAT('%', :lendedToLogin, '%'))) " +
         "AND (:gameId IS NULL OR i.game_id = :gameId) " +
         "AND (:gameName IS NULL OR LOWER(g.name) LIKE LOWER(CONCAT('%', :gameName, '%'))) " +
         "AND (:consoleId IS NULL OR g.console_id = :consoleId)"
@@ -60,7 +59,6 @@ public interface ItemRepository extends ReactiveCrudRepository<Item, Long>, Item
     Mono<Long> countWithFilters(
         @Param("ownerId") Long ownerId,
         @Param("lendedToId") Long lendedToId,
-        @Param("lendedToLogin") String lendedToLogin,
         @Param("gameId") Long gameId,
         @Param("gameName") String gameName,
         @Param("consoleId") Long consoleId
@@ -74,7 +72,6 @@ public interface ItemRepository extends ReactiveCrudRepository<Item, Long>, Item
         "LEFT JOIN console c ON g.console_id = c.id " +
         "WHERE (:ownerId IS NULL OR i.owner_id = :ownerId) " +
         "AND (:lendedToId IS NULL OR i.lended_to_id = :lendedToId) " +
-        "AND (:lendedToLogin IS NULL OR LOWER(lended_to.login) LIKE LOWER(CONCAT('%', :lendedToLogin, '%'))) " +
         "AND (:gameId IS NULL OR i.game_id = :gameId) " +
         "AND (:gameName IS NULL OR LOWER(g.name) LIKE LOWER(CONCAT('%', :gameName, '%'))) " +
         "AND (:consoleId IS NULL OR g.console_id = :consoleId) " +
@@ -95,7 +92,6 @@ public interface ItemRepository extends ReactiveCrudRepository<Item, Long>, Item
     Flux<Long> findIdsWithFilters(
         @Param("ownerId") Long ownerId,
         @Param("lendedToId") Long lendedToId,
-        @Param("lendedToLogin") String lendedToLogin,
         @Param("gameId") Long gameId,
         @Param("gameName") String gameName,
         @Param("consoleId") Long consoleId,

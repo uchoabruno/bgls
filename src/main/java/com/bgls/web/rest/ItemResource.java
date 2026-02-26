@@ -172,23 +172,11 @@ public class ItemResource {
         @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
         @RequestParam(name = "ownerId", required = false) Long ownerId,
         @RequestParam(name = "lendedToId", required = false) Long lendedToId,
-        @RequestParam(name = "lendedTo", required = false) String lendedToLogin,
         @RequestParam(name = "gameId", required = false) Long gameId,
         @RequestParam(name = "game", required = false) String gameName,
         @RequestParam(name = "consoleId", required = false) Long consoleId
     ) {
-        log.debug(
-            "REST request to get a page of Items with filters: ownerId={}, lendedToId={}, lendedToLogin={}, gameId={}, gameName={}, consoleId={}",
-            ownerId,
-            lendedToId,
-            lendedToLogin,
-            gameId,
-            gameName,
-            consoleId
-        );
-
-        boolean hasFilters =
-            ownerId != null || lendedToId != null || lendedToLogin != null || gameId != null || gameName != null || consoleId != null;
+        boolean hasFilters = ownerId != null || lendedToId != null || gameId != null || gameName != null || consoleId != null;
 
         if (!hasFilters) {
             if (eagerload) {
@@ -237,21 +225,10 @@ public class ItemResource {
         int limit = pageable.getPageSize();
 
         return itemRepository
-            .countWithFilters(ownerId, lendedToId, lendedToLogin, gameId, gameName, consoleId)
+            .countWithFilters(ownerId, lendedToId, gameId, gameName, consoleId)
             .zipWith(
                 itemRepository
-                    .findIdsWithFilters(
-                        ownerId,
-                        lendedToId,
-                        lendedToLogin,
-                        gameId,
-                        gameName,
-                        consoleId,
-                        sortField,
-                        sortDirection,
-                        limit,
-                        offset
-                    )
+                    .findIdsWithFilters(ownerId, lendedToId, gameId, gameName, consoleId, sortField, sortDirection, limit, offset)
                     .flatMap(id -> eagerload ? itemRepository.findOneWithEagerRelationships(id) : itemRepository.findById(id))
                     .collectList()
             )

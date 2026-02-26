@@ -22,7 +22,7 @@ import { ConsoleService } from 'app/entities/console/service/console.service';
 
 interface ItemFilters {
   ownerId?: number;
-  lendedTo?: string;
+  lendedToId?: number;
   game?: string;
   consoleId?: number;
 }
@@ -40,6 +40,7 @@ export class ItemComponent implements OnInit {
   showFilters = false;
 
   owners: IUser[] = [];
+  lendedTos: IUser[] = [];
   consoles: IConsole[] = [];
   isLoadingOptions = false;
 
@@ -47,7 +48,7 @@ export class ItemComponent implements OnInit {
 
   filters: ItemFilters = {
     ownerId: undefined,
-    lendedTo: '',
+    lendedToId: undefined,
     game: '',
     consoleId: undefined,
   };
@@ -88,9 +89,11 @@ export class ItemComponent implements OnInit {
     this.userService.query({ size: 1000 }).subscribe({
       next: res => {
         this.owners = res.body ?? [];
+        this.lendedTos = res.body ?? [];
       },
       error: () => {
         this.owners = [];
+        this.lendedTos = [];
       },
     });
 
@@ -118,7 +121,7 @@ export class ItemComponent implements OnInit {
   clearFilters(): void {
     this.filters = {
       ownerId: undefined,
-      lendedTo: '',
+      lendedToId: undefined,
       game: '',
       consoleId: undefined,
     };
@@ -167,7 +170,7 @@ export class ItemComponent implements OnInit {
     const params = this.activatedRoute.snapshot.queryParams;
     this.filters = {
       ownerId: params['ownerId'] ? Number(params['ownerId']) : undefined,
-      lendedTo: params['lendedTo'] || '',
+      lendedToId: params['lendedToId'] ? Number(params['lendedToId']) : undefined,
       game: params['game'] || '',
       consoleId: params['consoleId'] ? Number(params['consoleId']) : undefined,
     };
@@ -183,8 +186,8 @@ export class ItemComponent implements OnInit {
     if (this.filters.ownerId) {
       queryParams['ownerId'] = this.filters.ownerId;
     }
-    if (this.filters.lendedTo && this.filters.lendedTo.trim() !== '') {
-      queryParams['lendedTo'] = this.filters.lendedTo.trim();
+    if (this.filters.lendedToId) {
+      queryParams['lendedToId'] = this.filters.lendedToId;
     }
     if (this.filters.game && this.filters.game.trim() !== '') {
       queryParams['game'] = this.filters.game.trim();
@@ -207,8 +210,8 @@ export class ItemComponent implements OnInit {
     if (this.filters.ownerId) {
       filterParams['ownerId'] = this.filters.ownerId;
     }
-    if (this.filters.lendedTo && this.filters.lendedTo.trim() !== '') {
-      filterParams['lendedTo'] = this.filters.lendedTo.trim();
+    if (this.filters.lendedToId) {
+      filterParams['lendedToId'] = this.filters.lendedToId;
     }
     if (this.filters.game && this.filters.game.trim() !== '') {
       filterParams['game'] = this.filters.game.trim();
