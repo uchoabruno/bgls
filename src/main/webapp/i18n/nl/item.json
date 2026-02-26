@@ -2,6 +2,9 @@
   "bglsApp": {
     "item": {
       "home": {
+        "applyFilters": "Apply",
+        "clearFilters": "Clear",
+        "filters": "Filters",
         "title": "Items",
         "refreshListLabel": "Refresh list",
         "createLabel": "Maak een nieuwe Item",

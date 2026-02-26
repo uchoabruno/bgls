@@ -10,6 +10,7 @@ import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -100,7 +101,10 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
             .leftOuterJoin(consoleTable)
             .on(Column.create("console_id", gameTable))
             .equals(Column.create("id", consoleTable));
-        // we do not support Criteria here for now as of https://github.com/jhipster/generator-jhipster/issues/18269
+
+        if (pageable == null) {
+            pageable = Pageable.unpaged();
+        }
 
         Sort originalSort = pageable.getSort();
         List<Sort.Order> newOrders = new ArrayList<>();
@@ -115,7 +119,13 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
             }
         }
         Sort modifiedSort = Sort.by(newOrders);
-        Pageable modifiedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), modifiedSort);
+
+        Pageable modifiedPageable;
+        if (pageable.isPaged()) {
+            modifiedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), modifiedSort);
+        } else {
+            modifiedPageable = PageRequest.of(0, Integer.MAX_VALUE, modifiedSort);
+        }
 
         String select = entityManager.createSelect(selectFrom, Item.class, modifiedPageable, whereClause);
         return db.sql(select).map(this::process);
@@ -123,13 +133,14 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
 
     @Override
     public Flux<Item> findAll() {
-        return findAllBy(null);
+        return findAllBy(Pageable.unpaged());
     }
 
     @Override
     public Mono<Item> findById(Long id) {
         Comparison whereClause = Conditions.isEqual(entityTable.column("id"), Conditions.just(id.toString()));
-        return createQuery(null, whereClause).one();
+        Pageable singleItemPageable = PageRequest.of(0, 1);
+        return createQuery(singleItemPageable, whereClause).one();
     }
 
     @Override
@@ -147,18 +158,49 @@ class ItemRepositoryInternalImpl extends SimpleR2dbcRepository<Item, Long> imple
         return findAllBy(page);
     }
 
+    @Override
+    public Flux<Item> findAllWithEagerRelationshipsByIds(Flux<Long> ids) {
+        return ids.flatMap(this::findOneWithEagerRelationships).filter(Objects::nonNull);
+    }
+
     private Item process(Row row, RowMetadata metadata) {
         Item entity = itemMapper.apply(row, "e");
-        entity.setOwner(userMapper.apply(row, OWNER));
-        entity.setLendedTo(userMapper.apply(row, LENDED_TO));
 
-        Game game = GameSqlHelper.extract(row, GAME);
-        if (game != null) {
-            Console console = ConsoleSqlHelper.extract(row, CONSOLE);
-            game.setConsole(console);
+        try {
+            entity.setOwner(userMapper.apply(row, OWNER));
+        } catch (Exception e) {
+            entity.setOwner(null);
         }
-        entity.setGame(game);
+
+        try {
+            entity.setLendedTo(userMapper.apply(row, LENDED_TO));
+        } catch (Exception e) {
+            entity.setLendedTo(null);
+        }
+
+        try {
+            Game game = GameSqlHelper.extract(row, GAME);
+            if (game != null && game.getId() != null) {
+                extractConsole(row, game);
+                entity.setGame(game);
+            } else {
+                entity.setGame(null);
+            }
+        } catch (Exception e) {
+            entity.setGame(null);
+        }
 
         return entity;
+    }
+
+    private static void extractConsole(Row row, Game game) {
+        try {
+            Console console = ConsoleSqlHelper.extract(row, CONSOLE);
+            if (console != null && console.getId() != null) {
+                game.setConsole(console);
+            }
+        } catch (Exception ignored) {
+            // Ignoring
+        }
     }
 }

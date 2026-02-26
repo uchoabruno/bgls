@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -96,7 +97,7 @@ public class ItemResource {
         return itemRepository
             .existsById(id)
             .flatMap(exists -> {
-                if (!exists) {
+                if (Boolean.FALSE.equals(exists)) {
                     return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
                 }
 
@@ -139,7 +140,7 @@ public class ItemResource {
         return itemRepository
             .existsById(id)
             .flatMap(exists -> {
-                if (!exists) {
+                if (Boolean.FALSE.equals(exists)) {
                     return Mono.error(new BadRequestAlertException("Entity not found", ENTITY_NAME, "idnotfound"));
                 }
 
@@ -168,12 +169,92 @@ public class ItemResource {
     public Mono<ResponseEntity<List<Item>>> getAllItems(
         @org.springdoc.core.annotations.ParameterObject Pageable pageable,
         ServerHttpRequest request,
-        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload
+        @RequestParam(name = "eagerload", required = false, defaultValue = "true") boolean eagerload,
+        @RequestParam(name = "ownerId", required = false) Long ownerId,
+        @RequestParam(name = "lendedToId", required = false) Long lendedToId,
+        @RequestParam(name = "lendedTo", required = false) String lendedToLogin,
+        @RequestParam(name = "gameId", required = false) Long gameId,
+        @RequestParam(name = "game", required = false) String gameName,
+        @RequestParam(name = "consoleId", required = false) Long consoleId
     ) {
-        log.debug("REST request to get a page of Items");
+        log.debug(
+            "REST request to get a page of Items with filters: ownerId={}, lendedToId={}, lendedToLogin={}, gameId={}, gameName={}, consoleId={}",
+            ownerId,
+            lendedToId,
+            lendedToLogin,
+            gameId,
+            gameName,
+            consoleId
+        );
+
+        boolean hasFilters =
+            ownerId != null || lendedToId != null || lendedToLogin != null || gameId != null || gameName != null || consoleId != null;
+
+        if (!hasFilters) {
+            if (eagerload) {
+                return itemRepository
+                    .count()
+                    .zipWith(itemRepository.findAllWithEagerRelationships(pageable).collectList())
+                    .map(
+                        countWithEntities ->
+                            ResponseEntity.ok()
+                                .headers(
+                                    PaginationUtil.generatePaginationHttpHeaders(
+                                        ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders()),
+                                        new PageImpl<>(countWithEntities.getT2(), pageable, countWithEntities.getT1())
+                                    )
+                                )
+                                .body(countWithEntities.getT2())
+                    );
+            } else {
+                return itemRepository
+                    .count()
+                    .zipWith(itemRepository.findAllBy(pageable).collectList())
+                    .map(
+                        countWithEntities ->
+                            ResponseEntity.ok()
+                                .headers(
+                                    PaginationUtil.generatePaginationHttpHeaders(
+                                        ForwardedHeaderUtils.adaptFromForwardedHeaders(request.getURI(), request.getHeaders()),
+                                        new PageImpl<>(countWithEntities.getT2(), pageable, countWithEntities.getT1())
+                                    )
+                                )
+                                .body(countWithEntities.getT2())
+                    );
+            }
+        }
+
+        String sortField = "id";
+        String sortDirection = "ASC";
+
+        if (pageable.getSort().isSorted()) {
+            Sort.Order order = pageable.getSort().iterator().next();
+            sortField = order.getProperty();
+            sortDirection = order.getDirection().name();
+        }
+
+        long offset = pageable.getOffset();
+        int limit = pageable.getPageSize();
+
         return itemRepository
-            .count()
-            .zipWith(itemRepository.findAllBy(pageable).collectList())
+            .countWithFilters(ownerId, lendedToId, lendedToLogin, gameId, gameName, consoleId)
+            .zipWith(
+                itemRepository
+                    .findIdsWithFilters(
+                        ownerId,
+                        lendedToId,
+                        lendedToLogin,
+                        gameId,
+                        gameName,
+                        consoleId,
+                        sortField,
+                        sortDirection,
+                        limit,
+                        offset
+                    )
+                    .flatMap(id -> eagerload ? itemRepository.findOneWithEagerRelationships(id) : itemRepository.findById(id))
+                    .collectList()
+            )
             .map(
                 countWithEntities ->
                     ResponseEntity.ok()

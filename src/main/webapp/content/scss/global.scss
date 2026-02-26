@@ -272,3 +272,18 @@ angular-cli removes postcss-rtl processed inline css, processed rules must be ad
 .table-entities {
   overflow: visible;
 }
+
+.card-header .btn-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card-header .btn-link:hover {
+  text-decoration: none;
+  color: var(--bs-primary);
+}
+
+.form-control:focus {
+  border-color: var(--bs-primary);
+  box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+}

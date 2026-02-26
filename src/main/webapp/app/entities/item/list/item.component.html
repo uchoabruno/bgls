@@ -21,8 +21,98 @@
   </h2>
 
   <jhi-alert-error></jhi-alert-error>
-
   <jhi-alert></jhi-alert>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      <h5 class="mb-0">
+        <button class="btn btn-link p-0" type="button" (click)="toggleFilters()" [attr.aria-expanded]="showFilters">
+          <fa-icon [icon]="showFilters ? 'chevron-down' : 'chevron-right'"></fa-icon>
+          <span jhiTranslate="bglsApp.item.home.filters">Filters</span>
+        </button>
+      </h5>
+    </div>
+
+    @if (showFilters) {
+      <div class="card-body">
+        <form (ngSubmit)="applyFilters()" #filterForm="ngForm">
+          <div class="row">
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label for="ownerFilter" class="form-label" jhiTranslate="bglsApp.item.owner">Owner</label>
+                <select class="form-select" id="ownerFilter" name="ownerFilter" [(ngModel)]="filters.ownerId" [disabled]="isLoadingOptions">
+                  <option value="">All owners</option>
+                  @for (owner of owners; track owner.id) {
+                    <option [value]="owner.id">{{ owner.login }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label for="lendedToFilter" class="form-label" jhiTranslate="bglsApp.item.lendedTo">Lended To</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="lendedToFilter"
+                  name="lendedToFilter"
+                  [(ngModel)]="filters.lendedTo"
+                  placeholder="Filter by lended to..."
+                />
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label for="gameFilter" class="form-label" jhiTranslate="bglsApp.item.game">Game</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="gameFilter"
+                  name="gameFilter"
+                  [(ngModel)]="filters.game"
+                  placeholder="Filter by game..."
+                />
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <div class="mb-3">
+                <label for="consoleFilter" class="form-label" jhiTranslate="bglsApp.item.game.console">Console</label>
+                <select
+                  class="form-select"
+                  id="consoleFilter"
+                  name="consoleFilter"
+                  [(ngModel)]="filters.consoleId"
+                  [disabled]="isLoadingOptions"
+                >
+                  <option value="">All consoles</option>
+                  @for (console of consoles; track console.id) {
+                    <option [value]="console.id">{{ console.name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary me-2" [disabled]="isLoading">
+                <fa-icon icon="search"></fa-icon>
+                <span jhiTranslate="bglsApp.item.home.applyFilters">Apply Filters</span>
+              </button>
+
+              <button type="button" class="btn btn-secondary" (click)="clearFilters()" [disabled]="isLoading">
+                <fa-icon icon="times"></fa-icon>
+                <span jhiTranslate="bglsApp.item.home.clearFilters">Clear Filters</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    }
+  </div>
 
   @if (items?.length === 0) {
     <div class="alert alert-warning" id="no-result">
@@ -55,7 +145,7 @@
             </th>
             <th scope="col" jhiSortBy="game.console.name">
               <div class="d-flex">
-                <span jhiTranslate="bglsApp.item.game.console">Game</span>
+                <span jhiTranslate="bglsApp.item.game.console">Console</span>
                 <fa-icon class="p-1" icon="sort"></fa-icon>
               </div>
             </th>
