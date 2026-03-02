@@ -3,8 +3,8 @@ import { IGame } from 'app/entities/game/game.model';
 
 export interface IItem {
   id: number;
-  owner?: Pick<IUser, 'id' | 'login'> | null;
-  lendedTo?: Pick<IUser, 'id' | 'login'> | null;
+  owner?: Pick<IUser, 'id' | 'login' | 'firstName'> | null;
+  lendedTo?: Pick<IUser, 'id' | 'login' | 'firstName'> | null;
   game?: IGame | null;
 }
 

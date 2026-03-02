@@ -160,10 +160,10 @@
           @for (item of items; track trackId) {
             <tr data-cy="entityTable">
               <td>
-                {{ item.owner?.login }}
+                {{ item.owner?.firstName ?? item.owner?.login }}
               </td>
               <td>
-                {{ item.lendedTo?.login }}
+                {{ item.lendedTo?.firstName ?? item.lendedTo?.login }}
               </td>
               <td>
                 @if (item.game) {
