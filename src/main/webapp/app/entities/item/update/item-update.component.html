@@ -49,14 +49,37 @@
           </select>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label" for="field_game" jhiTranslate="bglsApp.item.game">Game</label>
-          <select class="form-control" id="field_game" data-cy="game" name="game" formControlName="game" [compareWith]="compareGame">
-            <option [ngValue]="null"></option>
-            @for (gameOption of gamesSharedCollection; track $index) {
-              <option [ngValue]="gameOption">{{ gameOption.name }}</option>
+        <div class="mb-3 position-relative">
+          <label class="form-label" for="field_game_search" jhiTranslate="bglsApp.item.game.title">Game</label>
+          <input
+            type="text"
+            class="form-control"
+            id="field_game_search"
+            data-cy="gameSearchInput"
+            [(ngModel)]="gameSearchInput"
+            (ngModelChange)="search(gameSearchInput)"
+            [ngModelOptions]="{ standalone: true }"
+            [placeholder]="gameDisplayFn(editForm.get('game')?.value) || ('bglsApp.item.game.searchPlaceholder' | translate)"
+            autocomplete="off"
+            [disabled]="editForm.get('game')?.disabled ?? false"
+          />
+
+          <div class="list-group position-absolute w-100" style="z-index: 1000" *ngIf="showSuggestions && (searchGames$ | async) as games">
+            @if (games.length > 0) {
+              @for (game of games; track game.id) {
+                <button type="button" class="list-group-item list-group-item-action" (click)="onGameSelected(game)">
+                  {{ game.name }}
+                </button>
+              }
+            } @else {
+              <div class="list-group-item disabled">
+                {{ 'bglsApp.item.game.noResults' | translate }}
+              </div>
             }
-          </select>
+          </div>
+
+          <input type="hidden" formControlName="game" />
+
           @if (editForm.get('game')!.invalid && (editForm.get('game')!.dirty || editForm.get('game')!.touched)) {
             <div>
               @if (editForm.get('game')?.errors?.required) {

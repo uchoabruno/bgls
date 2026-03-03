@@ -78,4 +78,6 @@ public interface GameService {
      * @return a Mono to signal the deletion
      */
     Mono<Void> delete(Long id);
+
+    Flux<GameDTO> findByNameContainingIgnoreCase(String name);
 }

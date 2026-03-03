@@ -95,4 +95,9 @@ public class GameServiceImpl implements GameService {
         log.debug("Request to delete Game : {}", id);
         return gameRepository.deleteById(id);
     }
+
+    @Override
+    public Flux<GameDTO> findByNameContainingIgnoreCase(String name) {
+        return gameRepository.findGamesByNameContainingIgnoreCase(name).map(gameMapper::toDto);
+    }
 }

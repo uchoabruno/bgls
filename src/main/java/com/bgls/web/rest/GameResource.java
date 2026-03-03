@@ -223,6 +223,11 @@ public class GameResource {
         return ResponseUtil.wrapOrNotFound(gameDTO);
     }
 
+    @GetMapping("/search")
+    public Mono<ResponseEntity<List<GameDTO>>> searchGamesByName(@RequestParam String name) {
+        return gameService.findByNameContainingIgnoreCase(name).collectList().map(games -> ResponseEntity.ok().body(games));
+    }
+
     /**
      * {@code DELETE  /games/:id} : delete the "id" game.
      *

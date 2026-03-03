@@ -23,8 +23,12 @@
       "id": "ID",
       "owner": "Owner",
       "lendedTo": "Lended To",
-      "game": "Game",
-      "game.console": "Console"
+      "game": {
+        "title": "Game",
+        "console": "Console",
+        "searchPlaceholder": "Type the name of the game you want to create",
+        "noResults": "No results"
+      }
     }
   }
 }

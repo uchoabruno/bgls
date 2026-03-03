@@ -1,8 +1,8 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import { forkJoin, Observable, of, switchMap, take } from 'rxjs';
-import { finalize, map } from 'rxjs/operators';
+import { forkJoin, Observable, of, Subject, switchMap, take } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, finalize, map } from 'rxjs/operators';
 
 import SharedModule from 'app/shared/shared.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -24,10 +24,13 @@ import { AccountService } from '../../../core/auth/account.service';
 })
 export class ItemUpdateComponent implements OnInit {
   isSaving = false;
+  showSuggestions = false;
   item: IItem | null = null;
-
+  gameSearchInput: string = '';
   usersSharedCollection: IUser[] = [];
   gamesSharedCollection: IGame[] = [];
+
+  searchGames$: Observable<IGame[]> = of([]);
 
   protected accountService = inject(AccountService);
   protected itemService = inject(ItemService);
@@ -36,6 +39,8 @@ export class ItemUpdateComponent implements OnInit {
   protected gameService = inject(GameService);
   protected activatedRoute = inject(ActivatedRoute);
 
+  private searchTerms = new Subject<string>();
+
   // eslint-disable-next-line @typescript-eslint/member-ordering
   editForm: ItemFormGroup = this.itemFormService.createItemFormGroup();
 
@@ -43,6 +48,18 @@ export class ItemUpdateComponent implements OnInit {
   compareGame = (o1: IGame | null, o2: IGame | null): boolean => this.gameService.compareGame(o1, o2);
 
   ngOnInit(): void {
+    this.searchGames$ = this.searchTerms.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((term: string) => {
+        if (term && term.length >= 2) {
+          return this.gameService.findGamesByName(term).pipe(catchError(() => of([])));
+        } else {
+          return of([]);
+        }
+      }),
+    );
+
     forkJoin([
       this.activatedRoute.data.pipe(
         take(1),
@@ -57,6 +74,10 @@ export class ItemUpdateComponent implements OnInit {
       .pipe(
         switchMap(([resolvedItem, gameIdFromQuery, currentUser]) => {
           this.item = resolvedItem;
+
+          if (this.item?.game) {
+            this.gameSearchInput = this.item.game.name || '';
+          }
 
           if (!this.item && currentUser?.login) {
             return this.userService.query({ 'login.equals': currentUser.login }).pipe(
@@ -100,17 +121,21 @@ export class ItemUpdateComponent implements OnInit {
             if (gameFromCollection) {
               this.editForm.get('game')?.setValue(gameFromCollection);
               this.editForm.get('game')?.disable();
+              this.gameSearchInput = gameFromCollection.name || '';
             } else {
               this.gameService.find(gameIdNum).subscribe(
                 (res: HttpResponse<IGame>) => {
                   if (res.body) {
                     this.editForm.get('game')?.setValue(res.body);
                     this.editForm.get('game')?.disable();
+                    this.gameSearchInput = res.body.name || '';
                   }
                 },
                 error => console.error(`Error searching for game with ID ${gameIdFromQuery}:`, error),
               );
             }
+          } else if (this.item?.game) {
+            this.editForm.get('game')?.enable();
           } else {
             this.editForm.get('game')?.enable();
           }
@@ -127,7 +152,19 @@ export class ItemUpdateComponent implements OnInit {
 
   save(): void {
     this.isSaving = true;
+    const gameControl = this.editForm.get('game');
+    const wasGameControlDisabled = gameControl?.disabled;
+
+    if (wasGameControlDisabled) {
+      gameControl?.enable();
+    }
+
     const item = this.itemFormService.getItem(this.editForm);
+
+    if (wasGameControlDisabled) {
+      gameControl?.disable();
+    }
+
     if (item.id !== null) {
       this.subscribeToSaveResponse(this.itemService.update(item));
     } else {
@@ -164,6 +201,10 @@ export class ItemUpdateComponent implements OnInit {
       item.lendedTo,
     );
     this.gamesSharedCollection = this.gameService.addGameToCollectionIfMissing<IGame>(this.gamesSharedCollection, item.game);
+
+    if (item.game) {
+      this.gameSearchInput = item.game.name || '';
+    }
     this.editForm.get('game')?.enable();
   }
 
@@ -186,5 +227,25 @@ export class ItemUpdateComponent implements OnInit {
     );
 
     return forkJoin([userQuery$, gameQuery$]);
+  }
+
+  protected search(term: string): void {
+    this.searchTerms.next(term);
+    this.showSuggestions = !!(term && term.length >= 2);
+    if (!term) {
+      this.editForm.get('game')?.setValue(null);
+      this.showSuggestions = false;
+    }
+  }
+
+  protected onGameSelected(game: IGame): void {
+    this.editForm.get('game')?.setValue(game);
+    this.gameSearchInput = game.name || '';
+    this.showSuggestions = false;
+    this.searchTerms.next('');
+  }
+
+  protected gameDisplayFn(game: IGame | null | undefined): string {
+    return game?.name || '';
   }
 }

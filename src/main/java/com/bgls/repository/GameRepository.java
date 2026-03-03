@@ -43,6 +43,8 @@ public interface GameRepository extends ReactiveCrudRepository<Game, Long>, Game
 
     @Override
     Mono<Void> deleteById(Long id);
+
+    Flux<Game> findGamesByNameContainingIgnoreCase(String name);
 }
 
 interface GameRepositoryInternal {
