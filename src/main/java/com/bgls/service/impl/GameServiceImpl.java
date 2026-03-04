@@ -98,6 +98,6 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Flux<GameDTO> findByNameContainingIgnoreCase(String name) {
-        return gameRepository.findGamesByNameContainingIgnoreCase(name).map(gameMapper::toDto);
+        return gameRepository.findByNameContainingIgnoreCaseWithEagerRelationships(name).map(gameMapper::toDto);
     }
 }

@@ -68,7 +68,7 @@
             @if (games.length > 0) {
               @for (game of games; track game.id) {
                 <button type="button" class="list-group-item list-group-item-action" (click)="onGameSelected(game)">
-                  {{ game.name }}
+                  {{ game.name }} ({{ game.console?.name }})
                 </button>
               }
             } @else {

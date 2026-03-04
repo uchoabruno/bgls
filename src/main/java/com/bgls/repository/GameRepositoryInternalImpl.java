@@ -5,6 +5,7 @@ import com.bgls.domain.criteria.GameCriteria;
 import com.bgls.repository.rowmapper.ColumnConverter;
 import com.bgls.repository.rowmapper.ConsoleRowMapper;
 import com.bgls.repository.rowmapper.GameRowMapper;
+import com.bgls.service.AliasesUtil;
 import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 import java.util.ArrayList;
@@ -14,14 +15,9 @@ import org.springframework.data.r2dbc.convert.R2dbcConverter;
 import org.springframework.data.r2dbc.core.R2dbcEntityOperations;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.support.SimpleR2dbcRepository;
-import org.springframework.data.relational.core.sql.Column;
-import org.springframework.data.relational.core.sql.Comparison;
-import org.springframework.data.relational.core.sql.Condition;
-import org.springframework.data.relational.core.sql.Conditions;
-import org.springframework.data.relational.core.sql.Expression;
-import org.springframework.data.relational.core.sql.Select;
+import org.springframework.data.relational.core.mapping.RelationalPersistentEntity;
+import org.springframework.data.relational.core.sql.*;
 import org.springframework.data.relational.core.sql.SelectBuilder.SelectFromAndJoinCondition;
-import org.springframework.data.relational.core.sql.Table;
 import org.springframework.data.relational.repository.support.MappingRelationalEntityInformation;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.r2dbc.core.RowsFetchSpec;
@@ -43,8 +39,8 @@ class GameRepositoryInternalImpl extends SimpleR2dbcRepository<Game, Long> imple
     private final GameRowMapper gameMapper;
     private final ColumnConverter columnConverter;
 
-    private static final Table entityTable = Table.aliased("game", EntityManager.ENTITY_ALIAS);
-    private static final Table consoleTable = Table.aliased("console", "console");
+    private static final Table entityTable = Table.aliased(AliasesUtil.GAME, EntityManager.ENTITY_ALIAS);
+    private static final Table consoleTable = Table.aliased(AliasesUtil.CONSOLE, AliasesUtil.CONSOLE);
 
     public GameRepositoryInternalImpl(
         R2dbcEntityTemplate template,
@@ -56,7 +52,9 @@ class GameRepositoryInternalImpl extends SimpleR2dbcRepository<Game, Long> imple
         ColumnConverter columnConverter
     ) {
         super(
-            new MappingRelationalEntityInformation(converter.getMappingContext().getRequiredPersistentEntity(Game.class)),
+            new MappingRelationalEntityInformation<>(
+                (RelationalPersistentEntity<Game>) converter.getMappingContext().getRequiredPersistentEntity(Game.class)
+            ),
             entityOperations,
             converter
         );
@@ -113,15 +111,20 @@ class GameRepositoryInternalImpl extends SimpleR2dbcRepository<Game, Long> imple
         return findAllBy(page);
     }
 
+    @Override
+    public Flux<Game> findByNameContainingIgnoreCaseWithEagerRelationships(String name) {
+        Condition whereClause = createNameLikeCondition(name);
+        return createQuery(null, whereClause).all();
+    }
+
+    private Condition createNameLikeCondition(String name) {
+        return Conditions.like(Functions.lower(entityTable.column("name")), Conditions.just("'%" + name.toLowerCase() + "%'"));
+    }
+
     private Game process(Row row, RowMetadata metadata) {
         Game entity = gameMapper.apply(row, "e");
         entity.setConsole(consoleMapper.apply(row, "console"));
         return entity;
-    }
-
-    @Override
-    public <S extends Game> Mono<S> save(S entity) {
-        return super.save(entity);
     }
 
     @Override
@@ -138,7 +141,7 @@ class GameRepositoryInternalImpl extends SimpleR2dbcRepository<Game, Long> imple
 
     private Condition buildConditions(GameCriteria criteria) {
         ConditionBuilder builder = new ConditionBuilder(this.columnConverter);
-        List<Condition> allConditions = new ArrayList<Condition>();
+        List<Condition> allConditions = new ArrayList<>();
         if (criteria != null) {
             if (criteria.getId() != null) {
                 builder.buildFilterConditionForField(criteria.getId(), entityTable.column("id"));

@@ -43,8 +43,6 @@ public interface GameRepository extends ReactiveCrudRepository<Game, Long>, Game
 
     @Override
     Mono<Void> deleteById(Long id);
-
-    Flux<Game> findGamesByNameContainingIgnoreCase(String name);
 }
 
 interface GameRepositoryInternal {
@@ -55,8 +53,7 @@ interface GameRepositoryInternal {
     Flux<Game> findAll();
 
     Mono<Game> findById(Long id);
-    // this is not supported at the moment because of https://github.com/jhipster/generator-jhipster/issues/18269
-    // Flux<Game> findAllBy(Pageable pageable, Criteria criteria);
+
     Flux<Game> findByCriteria(GameCriteria criteria, Pageable pageable);
 
     Mono<Long> countByCriteria(GameCriteria criteria);
@@ -66,6 +63,8 @@ interface GameRepositoryInternal {
     Flux<Game> findAllWithEagerRelationships();
 
     Flux<Game> findAllWithEagerRelationships(Pageable page);
+
+    Flux<Game> findByNameContainingIgnoreCaseWithEagerRelationships(String name);
 
     Mono<Void> deleteById(Long id);
 }
