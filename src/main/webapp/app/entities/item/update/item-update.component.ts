@@ -39,7 +39,7 @@ export class ItemUpdateComponent implements OnInit {
   protected gameService = inject(GameService);
   protected activatedRoute = inject(ActivatedRoute);
 
-  private searchTerms = new Subject<string>();
+  private readonly searchTerms = new Subject<string>();
 
   // eslint-disable-next-line @typescript-eslint/member-ordering
   editForm: ItemFormGroup = this.itemFormService.createItemFormGroup();
@@ -76,7 +76,7 @@ export class ItemUpdateComponent implements OnInit {
           this.item = resolvedItem;
 
           if (this.item?.game) {
-            this.gameSearchInput = this.item.game.name || '';
+            this.gameSearchInput = this.item.game.name ?? '';
           }
 
           if (!this.item && currentUser?.login) {
@@ -121,14 +121,14 @@ export class ItemUpdateComponent implements OnInit {
             if (gameFromCollection) {
               this.editForm.get('game')?.setValue(gameFromCollection);
               this.editForm.get('game')?.disable();
-              this.gameSearchInput = gameFromCollection.name || '';
+              this.gameSearchInput = gameFromCollection.name ?? '';
             } else {
               this.gameService.find(gameIdNum).subscribe(
                 (res: HttpResponse<IGame>) => {
                   if (res.body) {
                     this.editForm.get('game')?.setValue(res.body);
                     this.editForm.get('game')?.disable();
-                    this.gameSearchInput = res.body.name || '';
+                    this.gameSearchInput = res.body.name ?? '';
                   }
                 },
                 error => console.error(`Error searching for game with ID ${gameIdFromQuery}:`, error),
@@ -147,7 +147,7 @@ export class ItemUpdateComponent implements OnInit {
   }
 
   previousState(): void {
-    window.history.back();
+    globalThis.history.back();
   }
 
   save(): void {
@@ -156,19 +156,19 @@ export class ItemUpdateComponent implements OnInit {
     const wasGameControlDisabled = gameControl?.disabled;
 
     if (wasGameControlDisabled) {
-      gameControl?.enable();
+      gameControl.enable();
     }
 
     const item = this.itemFormService.getItem(this.editForm);
 
     if (wasGameControlDisabled) {
-      gameControl?.disable();
+      gameControl.disable();
     }
 
-    if (item.id !== null) {
-      this.subscribeToSaveResponse(this.itemService.update(item));
-    } else {
+    if (item.id === null) {
       this.subscribeToSaveResponse(this.itemService.create(item));
+    } else {
+      this.subscribeToSaveResponse(this.itemService.update(item));
     }
   }
 
@@ -203,7 +203,7 @@ export class ItemUpdateComponent implements OnInit {
     this.gamesSharedCollection = this.gameService.addGameToCollectionIfMissing<IGame>(this.gamesSharedCollection, item.game);
 
     if (item.game) {
-      this.gameSearchInput = item.game.name || '';
+      this.gameSearchInput = item.game.name ?? '';
     }
     this.editForm.get('game')?.enable();
   }
@@ -240,12 +240,12 @@ export class ItemUpdateComponent implements OnInit {
 
   protected onGameSelected(game: IGame): void {
     this.editForm.get('game')?.setValue(game);
-    this.gameSearchInput = game.name || '';
+    this.gameSearchInput = game.name ?? '';
     this.showSuggestions = false;
     this.searchTerms.next('');
   }
 
   protected gameDisplayFn(game: IGame | null | undefined): string {
-    return game?.name || '';
+    return game?.name ?? '';
   }
 }
